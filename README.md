@@ -3,10 +3,12 @@ PyObsHub is an attempt to write tsomethign that combines a semi-hiarchical map o
 It is intended for use by a single person over their kit of a single telescope. an astronomy club or society over multiple sets of kit or globally by an umlimited set of users across multiple time zones. 
 
 It is inspired by : 
-https://github.com/WorldWideTelescope/pywwt
-https://github.com/lgrcia/prose
-https://github.com/panoptes/POCS
-https://github.com/larrylart/Unimap
+<ul>
+<li>https://github.com/WorldWideTelescope/pywwt</li>
+<li>https://github.com/lgrcia/prose</li>
+<li>https://github.com/panoptes/POCS</li>
+<li>https://github.com/larrylart/Unimap</li>
+</ul>
 
 
 <h2>Design </h2>
