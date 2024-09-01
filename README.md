@@ -20,11 +20,14 @@ The server implemetns the Alpaca and Indi remote protocols for ASCOM and INDI de
 
 Next steps
 <ul>
-  <li> Add Config CRUD through the GUI including saving and restoratin at the erver via A REST interface. </li>
-  <li> Add grph display of objects to Server config tab in gui client. </li>
+  <li> Add Config CRUD through the GUI including saving and restoration at the server via A REST interface. </li>
+  <li> Add graph display of objects to Server config tab in gui client. </li>
   <li>add object types panels to GUI for saving at server. </li>
-  <li>Indeityf widgets for observation viewing and potentially processing</li>
-  <li> add HL script to define instrument processes at sites for operatoin of instruments.Support override attachable to specific sites.</li>
+  <li>Identify widgets for observation viewing and potentially processing</li>
+  <li>Add HL script to define instrument processes at sites for operatoin of instruments.Support override attachable to specific sites.</li>
+  <li>Add server peering to share observation requests amnd expose instruments </li>
+  <li> Add user oauth2 token support for role based access against trusted peer servers. </li>
+  <li> Add certificate support for server API over SSL.</li>
     
 </ul>
 
