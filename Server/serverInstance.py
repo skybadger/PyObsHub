@@ -3,6 +3,8 @@ from wsgiref.simple_server import make_server
 import falcon
 import json
 import datetime
+import os
+import threading
 
 class Hierarchy:
     hierarchy = ["Controller", "Site", "Station", "Mount", "OTA", "Port"]
@@ -82,7 +84,7 @@ class Hierarchy:
     @staticmethod
     def returncontrolledobjs(obj):
         """
-        ## Will break if there is a cyclical reference!
+        Will break if there is a cyclical reference! Do not use, instead use listallcontrolled
         :param obj: Object of inherited class (hierarchy)
         :return: List of controlled item
         """
@@ -95,6 +97,11 @@ class Hierarchy:
             return obj.name
 
     def loadfromjson(self, filename="controller_config.json"):
+        try:
+            open(filename, "r")
+        except FileNotFoundError:
+            raise FileNotFoundError("No config file exists with that name!")
+
         with open(filename, "r") as openfile:
             savedict = json.load(openfile)
             sitelist = savedict["controlled"]
@@ -219,87 +226,129 @@ class Hierarchy:
 
 
 class Site(Hierarchy):
-    def loadfrompkl(self):
+    def loadfromjson(self, filename="controller_config.json"):
         pass
 
-    def savetopkl(self):
+    def savetojson(self, filename="controller_config.json"):
         pass
 
 
 class Station(Hierarchy):
-    def loadfrompkl(self):
+    def loadfromjson(self, filename="controller_config.json"):
         pass
 
-    def savetopkl(self):
+    def savetojson(self, filename="controller_config.json"):
         pass
 
 
 class Mount(Hierarchy):
-    def loadfrompkl(self):
+    def loadfromjson(self, filename="controller_config.json"):
         pass
 
-    def savetopkl(self):
+    def savetojson(self, filename="controller_config.json"):
         pass
 
 
 class Ota(Hierarchy):
-    def loadfrompkl(self):
+    def loadfromjson(self, filename="controller_config.json"):
         pass
 
-    def savetopkl(self):
+    def savetojson(self, filename="controller_config.json"):
         pass
 
 
 class Port(Hierarchy):
-    def loadfrompkl(self):
+    def loadfromjson(self, filename="controller_config.json"):
         pass
 
-    def savetopkl(self):
+    def savetojson(self, filename="controller_config.json"):
         pass
 
+class testing:
+    def __init__(self):
+        self.test1()
 
-port = Port(name="templatePort", level="Port", associateddata="15232", avaliable=False)
-port2 = Port(name="templatePort2", level="Port", associateddata="17231", avaliable=True)
-OTA = Ota(name="templateOTA", level="OTA", associateddata="port controller", avaliable=False, controlled=[port])
-OTA2 = Ota(name="templateOTA2", level="OTA", associateddata="port controller", avaliable=False, controlled=[port2])
-mount = Mount(name="templateMount", level="Mount", associateddata="OTA controller", avaliable=False, controlled=[OTA])
-mount2 = Mount(name="templateMount2", level="Mount", associateddata="OTA controller", avaliable=False, controlled=[OTA2])
-station = Station(name="templateStation", level="Station", associateddata="Mount controller", avaliable=False, controlled=[mount, mount2])
-site = Site(name="templateSite", level="Site", associateddata="Station controller", avaliable=False, controlled=[station])
-controller = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[site])
-controller.savetojson()
-print(controller.listallcontrolled())
+    @staticmethod
+    def test1(filename="TestConfig", remove=True):
+        port = Port(name="templatePort", level="Port", associateddata="15232", avaliable=False)
+        port2 = Port(name="templatePort2", level="Port", associateddata="17231", avaliable=True)
+        OTA = Ota(name="templateOTA", level="OTA", associateddata="port controller", avaliable=False, controlled=[port])
+        OTA2 = Ota(name="templateOTA2", level="OTA", associateddata="port controller", avaliable=False, controlled=[port2])
+        mount = Mount(name="templateMount", level="Mount", associateddata="OTA controller", avaliable=False, controlled=[OTA])
+        mount2 = Mount(name="templateMount2", level="Mount", associateddata="OTA controller", avaliable=False, controlled=[OTA2])
+        station = Station(name="templateStation", level="Station", associateddata="Mount controller", avaliable=False, controlled=[mount, mount2])
+        site = Site(name="templateSite", level="Site", associateddata="Station controller", avaliable=False, controlled=[station])
+        controller = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[site])
+        controller.savetojson(filename)
 
-controller2 = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[])
-controller2.loadfromjson()
-print(controller2.listallcontrolled())
-assert controller.listallcontrolled() == controller2.listallcontrolled()
+        if remove:
+            controller2 = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[])
+            controller2.loadfromjson(filename)
+            os.remove(filename)
+            assert controller.listallcontrolled() == controller2.listallcontrolled()
 
 
-class ReqHandler:
+
+class reqhandlerforcontroller:
 
     @staticmethod
     def on_get(req, resp):
         """Handles GET requests"""
+        send = req.context
+        print(send)
         resp.status = falcon.HTTP_200
         resp.content_type = falcon.MEDIA_JSON
         responsedict = {"app": 300, "coins": 200}
         print(json.dumps(responsedict))
-        resp.body = json.dumps(responsedict)
+        resp.text = json.dumps(responsedict)
 
 # falcon.App instances are callable WSGI apps
 # in larger applications the app is created in a separate file
 
 
-app = falcon.App()
-reqobj = ReqHandler()
-app.add_route('/site', reqobj)
+class serverinstance:
+    def __init__(self, host: str = "localhost", port: int = 2000, controllerconfig: str = "contconfig.json"):
+        """
+
+        :param host: String of hosted ip for the server
+        :param port: Int port number upto 2^8
+        :param controllerconfig: Config file name
+        """
+        self.host = host
+        self.port = port
+        self.controllerconfig = controllerconfig
+
+        self.app = falcon.App()
+        reqobj = reqhandlerforcontroller()
+        self.app.add_route('/controller', reqobj)
+
+        print("Server starting...")
+        self.serverthread = threading.Thread(target=self.startserver, daemon=True)
+        self.serverthread.start()
+        print("Server started!")
+
+        print("Loading controller config...")
+        self.controller = Hierarchy(name="ServerController", level="Controller", avaliable=True)
+        self.controllerthread = threading.Thread(target=self.controller.loadfromjson, args=(self.controllerconfig,))
+        self.controllerthread.start()
+        self.controllerthread.join()
+        print("Controller config loaded!")
+
+
+
+    def startserver(self):
+        with make_server(self.host, self.port, self.app) as httpd:
+            print(f"Serving on port {self.port} at address {self.host}")
+            httpd.serve_forever()
+
 """
-if __name__ == '__main__':
-    with make_server('', 8000, app) as httpd:
-        print('Serving on port 8000...')
+app = falcon.App()
+reqobj = reqhandlerforcontroller()
+app.add_route('/controller', reqobj)
 
-        # Serve until process is killed
+print("Server starting...")
 
-        httpd.serve_forever()
+temp = mp.Thread(target=startserver, args=("", 8000, app), daemon=True)
+temp.start()
+print("Server started")
 """

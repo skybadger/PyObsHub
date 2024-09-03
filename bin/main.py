@@ -6,7 +6,9 @@ import astropy as aspy
 import astropy.units as u
 import astropy.coordinates as ascod
 """
-from PyObsHub.Gui import frontendFlet as fe
+from PyObsHub.Gui import gui as fe
+from PyObsHub.Server import serverInstance as si
+import threading
 
 """
 def testing():
@@ -21,6 +23,11 @@ def testing():
 
 
 if __name__ == "__main__":
-    print("Running...")
-    fe.start()
+    print("Running main...")
+    # fe.start()   ##GUI start
+    si.testing.test1("controllerconfig.json", remove=False)
+    serverObj = si.serverinstance("localhost",
+                      2000,
+                      "controllerconfig.json")
+
     #testing()

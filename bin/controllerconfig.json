@@ -1,0 +1,74 @@
+{
+      "controlled": [
+            {
+                  "name": "templateSite",
+                  "level": "Site",
+                  "lastupdated": "2024-09-03T13:23:29.598700",
+                  "associateddata": "Station controller",
+                  "controlled": [
+                        {
+                              "name": "templateStation",
+                              "level": "Station",
+                              "lastupdated": "2024-09-03T13:23:29.598700",
+                              "associateddata": "Mount controller",
+                              "controlled": [
+                                    {
+                                          "name": "templateMount",
+                                          "level": "Mount",
+                                          "lastupdated": "2024-09-03T13:23:29.598700",
+                                          "associateddata": "OTA controller",
+                                          "controlled": [
+                                                {
+                                                      "name": "templateOTA",
+                                                      "level": "OTA",
+                                                      "lastupdated": "2024-09-03T13:23:29.598700",
+                                                      "associateddata": "port controller",
+                                                      "controlled": [
+                                                            {
+                                                                  "name": "templatePort",
+                                                                  "level": "Port",
+                                                                  "lastupdated": "2024-09-03T13:23:29.598700",
+                                                                  "associateddata": "15232",
+                                                                  "controlled": null,
+                                                                  "avaliable": false
+                                                            }
+                                                      ],
+                                                      "avaliable": false
+                                                }
+                                          ],
+                                          "avaliable": false
+                                    },
+                                    {
+                                          "name": "templateMount2",
+                                          "level": "Mount",
+                                          "lastupdated": "2024-09-03T13:23:29.598700",
+                                          "associateddata": "OTA controller",
+                                          "controlled": [
+                                                {
+                                                      "name": "templateOTA2",
+                                                      "level": "OTA",
+                                                      "lastupdated": "2024-09-03T13:23:29.598700",
+                                                      "associateddata": "port controller",
+                                                      "controlled": [
+                                                            {
+                                                                  "name": "templatePort2",
+                                                                  "level": "Port",
+                                                                  "lastupdated": "2024-09-03T13:23:29.598700",
+                                                                  "associateddata": "17231",
+                                                                  "controlled": null,
+                                                                  "avaliable": true
+                                                            }
+                                                      ],
+                                                      "avaliable": false
+                                                }
+                                          ],
+                                          "avaliable": false
+                                    }
+                              ],
+                              "avaliable": false
+                        }
+                  ],
+                  "avaliable": false
+            }
+      ]
+}
