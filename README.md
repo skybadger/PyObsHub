@@ -8,6 +8,8 @@ It is inspired by :
 <li>https://github.com/lgrcia/prose</li>
 <li>https://github.com/panoptes/POCS</li>
 <li>https://github.com/larrylart/Unimap</li>
+<li>https://flet.dev/docs/</li>
+<li>https://github.com/macro-consortium/pyScope</li>
 </ul>
 
 The [Wiki](https://github.com/skybadger/PyObsHub/wiki) describes the internals in more detail. 
