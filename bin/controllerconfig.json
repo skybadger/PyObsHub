@@ -3,72 +3,176 @@
             {
                   "name": "templateSite",
                   "level": "Site",
-                  "lastupdated": "2024-09-03T13:51:22.604455",
+                  "lastupdated": "2024-09-03T20:44:29.996424",
                   "associateddata": "Station controller",
                   "controlled": [
                         {
                               "name": "templateStation",
                               "level": "Station",
-                              "lastupdated": "2024-09-03T13:51:22.604455",
+                              "lastupdated": "2024-09-03T20:44:29.996424",
                               "associateddata": "Mount controller",
                               "controlled": [
                                     {
                                           "name": "templateMount",
                                           "level": "Mount",
-                                          "lastupdated": "2024-09-03T13:51:22.604455",
+                                          "lastupdated": "2024-09-03T20:44:29.996424",
                                           "associateddata": "OTA controller",
                                           "controlled": [
                                                 {
                                                       "name": "templateOTA",
                                                       "level": "OTA",
-                                                      "lastupdated": "2024-09-03T13:51:22.604455",
+                                                      "lastupdated": "2024-09-03T20:44:29.996424",
                                                       "associateddata": "port controller",
                                                       "controlled": [
                                                             {
                                                                   "name": "templatePort",
                                                                   "level": "Port",
-                                                                  "lastupdated": "2024-09-03T13:51:22.604455",
+                                                                  "lastupdated": "2024-09-03T20:44:29.996424",
                                                                   "associateddata": "15232",
                                                                   "controlled": null,
-                                                                  "avaliable": false
+                                                                  "avaliable": false,
+                                                                  "focuser": {
+                                                                        "name": null,
+                                                                        "hostname": null,
+                                                                        "protocol": null,
+                                                                        "port": 1234
+                                                                  },
+                                                                  "camera": {
+                                                                        "name": null,
+                                                                        "hostname": null,
+                                                                        "protocol": null
+                                                                  },
+                                                                  "filterwheel": {
+                                                                        "name": null,
+                                                                        "hostname": null,
+                                                                        "protocol": null,
+                                                                        "port": 1234
+                                                                  }
                                                             }
                                                       ],
-                                                      "avaliable": false
+                                                      "avaliable": false,
+                                                      "otatype": "template",
+                                                      "aperture": 1.3,
+                                                      "obstruction": "wall",
+                                                      "fratio": 4.3,
+                                                      "spectralrange": [
+                                                            3.0000000000000004e-07,
+                                                            1.0000000000000002e-06
+                                                      ],
+                                                      "dewheater": {
+                                                            "name": null,
+                                                            "hostname": "FQDN",
+                                                            "protocol": "string",
+                                                            "port": "0000",
+                                                            "powerlevel": "50",
+                                                            "poweron": false,
+                                                            "useconditions": true
+                                                      }
                                                 }
                                           ],
-                                          "avaliable": false
+                                          "avaliable": false,
+                                          "horizonmap": [
+                                                0,
+                                                0,
+                                                0
+                                          ],
+                                          "telescope": {
+                                                "name": null,
+                                                "hostname": "FQDN",
+                                                "protocol": "string",
+                                                "port": "0000"
+                                          }
                                     },
                                     {
                                           "name": "templateMount2",
                                           "level": "Mount",
-                                          "lastupdated": "2024-09-03T13:51:22.604455",
+                                          "lastupdated": "2024-09-03T20:44:29.996424",
                                           "associateddata": "OTA controller",
                                           "controlled": [
                                                 {
                                                       "name": "templateOTA2",
                                                       "level": "OTA",
-                                                      "lastupdated": "2024-09-03T13:51:22.604455",
+                                                      "lastupdated": "2024-09-03T20:44:29.996424",
                                                       "associateddata": "port controller",
                                                       "controlled": [
                                                             {
                                                                   "name": "templatePort2",
                                                                   "level": "Port",
-                                                                  "lastupdated": "2024-09-03T13:51:22.604455",
+                                                                  "lastupdated": "2024-09-03T20:44:29.996424",
                                                                   "associateddata": "17231",
                                                                   "controlled": null,
-                                                                  "avaliable": true
+                                                                  "avaliable": true,
+                                                                  "focuser": {
+                                                                        "name": null,
+                                                                        "hostname": null,
+                                                                        "protocol": null,
+                                                                        "port": 1234
+                                                                  },
+                                                                  "camera": {
+                                                                        "name": null,
+                                                                        "hostname": null,
+                                                                        "protocol": null
+                                                                  },
+                                                                  "filterwheel": {
+                                                                        "name": null,
+                                                                        "hostname": null,
+                                                                        "protocol": null,
+                                                                        "port": 1234
+                                                                  }
                                                             }
                                                       ],
-                                                      "avaliable": false
+                                                      "avaliable": false,
+                                                      "otatype": "template2",
+                                                      "aperture": 1.3,
+                                                      "obstruction": "wall",
+                                                      "fratio": 4.3,
+                                                      "spectralrange": [
+                                                            3.0000000000000004e-07,
+                                                            1.0000000000000002e-06
+                                                      ],
+                                                      "dewheater": {
+                                                            "name": null,
+                                                            "hostname": "FQDN",
+                                                            "protocol": "string",
+                                                            "port": "0000",
+                                                            "powerlevel": "50",
+                                                            "poweron": false,
+                                                            "useconditions": true
+                                                      }
                                                 }
                                           ],
-                                          "avaliable": false
+                                          "avaliable": false,
+                                          "horizonmap": [
+                                                0,
+                                                0,
+                                                0
+                                          ],
+                                          "telescope": {
+                                                "name": null,
+                                                "hostname": "FQDN",
+                                                "protocol": "string",
+                                                "port": "0000"
+                                          }
                                     }
                               ],
-                              "avaliable": false
+                              "avaliable": false,
+                              "stationtype": "Dome",
+                              "hostname": "localhost",
+                              "interfacetype": "fast",
+                              "altlimits": [
+                                    0,
+                                    90
+                              ],
+                              "flatfielder": null
                         }
                   ],
-                  "avaliable": false
+                  "avaliable": false,
+                  "location": [
+                        51.234,
+                        52.324
+                  ],
+                  "elevation": 74,
+                  "tzoffset": 0.94
             }
       ]
 }

@@ -5,10 +5,11 @@
 import astropy as aspy
 import astropy.units as u
 import astropy.coordinates as ascod
-"""
+
+# for gui
 from PyObsHub.Gui import gui as fe
-from PyObsHub.Server import serverInstance as si
-import threading
+"""
+from PyObsHub.Server import serverInstance as Si
 
 """
 def testing():
@@ -18,16 +19,15 @@ def testing():
     CurrentCoord = ascod.EarthLocation.from_geodetic(51.364076750227284, -0.9667076203406508)
 """
 
-
-
-
-
 if __name__ == "__main__":
     print("Running main...")
     # fe.start()   ##GUI start
-    si.testing.test1("controllerconfig.json", remove=False)
-    serverObj = si.serverinstance("localhost",
-                      2000,
-                      "controllerconfig.json")
+    Si.Testing.test1("controllerconfig.json", False)
+    Si.Testing.loadtest("controllerconfig.json")
 
+    """
+    serverObj = Si.ServerInstance("localhost",
+                                  2000,
+                                  "controllerconfig.json")
+    """
     print("Ending main!")

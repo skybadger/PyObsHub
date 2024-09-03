@@ -5,7 +5,6 @@ import json
 import datetime
 import os
 import threading
-import time
 
 
 class Hierarchy:
@@ -14,7 +13,7 @@ class Hierarchy:
     def __init__(self, name,
                  level,
                  lastupdated=datetime.datetime.now().isoformat(),
-                 associateddata="",
+                 associateddata=None,
                  controlled=None,
                  avaliable=False):
         """
@@ -53,7 +52,8 @@ class Hierarchy:
     def addnonhierarchical(self, item):
         """
 
-        :param item: Item of class inherited(Hierarchy) but without the required level association (level is not required to be one below)
+        :param item: Item of class inherited(Hierarchy) but without the required level association
+        (level is not required to be one below)
         """
         self.controlled.append(item)
 
@@ -109,49 +109,32 @@ class Hierarchy:
             sitelist = savedict["controlled"]
             sites = []
             for siteidx in range(len(sitelist)):
-                tempsite = Site(sitelist[siteidx]["name"],
-                                level="Site",
-                                lastupdated=sitelist[siteidx]["lastupdated"],
-                                associateddata=sitelist[siteidx]["associateddata"],
-                                avaliable=sitelist[siteidx]["avaliable"])
-
+                sitedicttoload = sitelist[siteidx]
+                tempsite = Site(**sitedicttoload)
                 stationlist = sitelist[siteidx]["controlled"]
                 stations = []
-                for stationidx in range(len(stationlist)):
-                    tempstation = Site(stationlist[stationidx]["name"],
-                                       level="Station",
-                                       lastupdated=stationlist[stationidx]["lastupdated"],
-                                       associateddata=stationlist[stationidx]["associateddata"],
-                                       avaliable=stationlist[stationidx]["avaliable"])
 
+                for stationidx in range(len(stationlist)):
+                    stationdicttoload = stationlist[stationidx]
+                    tempstation = Station(**stationdicttoload)
                     mountlist = stationlist[stationidx]["controlled"]
                     mounts = []
-                    for mountidx in range(len(mountlist)):
-                        tempmount = Site(mountlist[mountidx]["name"],
-                                         level="Mount",
-                                         lastupdated=mountlist[mountidx]["lastupdated"],
-                                         associateddata=mountlist[mountidx]["associateddata"],
-                                         avaliable=mountlist[mountidx]["avaliable"])
 
+                    for mountidx in range(len(mountlist)):
+                        mountdicttoload = mountlist[mountidx]
+                        tempmount = Mount(**mountdicttoload)
                         otalist = mountlist[mountidx]["controlled"]
                         otas = []
-                        for otaidx in range(len(otalist)):
-                            tempota = Site(otalist[otaidx]["name"],
-                                           level="OTA",
-                                           lastupdated=otalist[otaidx]["lastupdated"],
-                                           associateddata=otalist[otaidx]["associateddata"],
-                                           avaliable=otalist[otaidx]["avaliable"])
 
+                        for otaidx in range(len(otalist)):
+                            otadicttoload = otalist[otaidx]
+                            tempota = Ota(**otadicttoload)
                             portlist = otalist[otaidx]["controlled"]
                             ports = []
-                            for portidx in range(len(sitelist)):
-                                tempport = Site(portlist[portidx]["name"],
-                                                level="Port",
-                                                lastupdated=portlist[portidx]["lastupdated"],
-                                                associateddata=portlist[portidx]["associateddata"],
-                                                controlled=None,
-                                                avaliable=portlist[portidx]["avaliable"])
 
+                            for portidx in range(len(sitelist)):
+                                portdictoload = portlist[portidx]
+                                tempport = Port(**portdictoload)
                                 ports.append(tempport)
 
                             tempota.controlled = ports
@@ -172,54 +155,30 @@ class Hierarchy:
         savedict = dict()
         savedict["controlled"] = []
         for siteObj in self.controlled:
-            sitedict = dict()
-            sitedict["name"] = siteObj.name
-            sitedict["level"] = "Site"
-            sitedict["lastupdated"] = siteObj.lastupdated
-            sitedict["associateddata"] = siteObj.associateddata
+            sitedict = {key: value for key, value in siteObj.__dict__.items() if not key.startswith('__') and not callable(key)}
             sitedict["controlled"] = []
-            sitedict["avaliable"] = siteObj.avaliable
 
             for stationObj in siteObj.controlled:
-                stationdict = dict()
-                stationdict["name"] = stationObj.name
-                stationdict["level"] = "Station"
-                stationdict["lastupdated"] = stationObj.lastupdated
-                stationdict["associateddata"] = stationObj.associateddata
+                stationdict = {key: value for key, value in stationObj.__dict__.items() if not key.startswith('__') and not callable(key)}
                 stationdict["controlled"] = []
-                stationdict["avaliable"] = stationObj.avaliable
 
                 for mountObj in stationObj.controlled:
-                    mountdict = dict()
-                    mountdict["name"] = mountObj.name
-                    mountdict["level"] = "Mount"
-                    mountdict["lastupdated"] = mountObj.lastupdated
-                    mountdict["associateddata"] = mountObj.associateddata
+                    mountdict = {key: value for key, value in mountObj.__dict__.items() if not key.startswith('__') and not callable(key)}
                     mountdict["controlled"] = []
-                    mountdict["avaliable"] = mountObj.avaliable
 
                     for OTAObj in mountObj.controlled:
-                        OTAdict = dict()
-                        OTAdict["name"] = OTAObj.name
-                        OTAdict["level"] = "OTA"
-                        OTAdict["lastupdated"] = OTAObj.lastupdated
-                        OTAdict["associateddata"] = OTAObj.associateddata
-                        OTAdict["controlled"] = []
-                        OTAdict["avaliable"] = OTAObj.avaliable
+                        otadict = {key: value for key, value in OTAObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                        otadict["controlled"] = []
 
                         for portObj in OTAObj.controlled:
-                            portdict = dict()
-                            portdict["name"] = portObj.name
-                            portdict["level"] = "Port"
-                            portdict["lastupdated"] = portObj.lastupdated
-                            portdict["associateddata"] = portObj.associateddata
+                            portdict = {key: value for key, value in portObj.__dict__.items() if not key.startswith('__') and not callable(key)}
                             portdict["controlled"] = None
-                            portdict["avaliable"] = portObj.avaliable
 
-                            OTAdict["controlled"].append(portdict)
-                        mountdict["controlled"].append(OTAdict)
+                            otadict["controlled"].append(portdict)
+                        mountdict["controlled"].append(otadict)
                     stationdict["controlled"].append(mountdict)
                 sitedict["controlled"].append(stationdict)
+
             savedict["controlled"].append(sitedict)
 
         with open(filename, "w") as openfile:
@@ -231,9 +190,9 @@ class Site(Hierarchy):
                  level,
                  location,
                  elevation,
-                 TZoffset,
+                 tzoffset,
                  lastupdated=datetime.datetime.now().isoformat(),
-                 associateddata="",
+                 associateddata=None,
                  controlled=None,
                  avaliable=False):
         """
@@ -249,7 +208,7 @@ class Site(Hierarchy):
         super().__init__(name, level, lastupdated, associateddata, controlled, avaliable)
         self.location = location
         self.elevation = elevation
-        self.TZoffset = TZoffset
+        self.tzoffset = tzoffset
 
     def loadfromjson(self, filename="controller_config.json"):
         pass
@@ -313,7 +272,6 @@ class Mount(Hierarchy):
         else:
             self.telescope = telescope
 
-
     def loadfromjson(self, filename="controller_config.json"):
         pass
 
@@ -327,10 +285,10 @@ class Ota(Hierarchy):
     def __init__(self, name,
                  level,
                  otatype: str,
-                 aperture: str,
+                 aperture: float,
                  obstruction: str,
-                 fratio: str,
-                 spectralrange: str,
+                 fratio: float,
+                 spectralrange: tuple,
                  dewheater: dict = None,
                  lastupdated=datetime.datetime.now().isoformat(),
                  associateddata="",
@@ -344,15 +302,20 @@ class Ota(Hierarchy):
         self.fratio = fratio
         self.spectralrange = spectralrange
         if dewheater is None:
-            self.dewheaterinfo = {"name": None,
-                                  "hostname": "FQDN",
-                                  "protocol": "string",
-                                  "port": "0000",
-                                  "powerlevel": "50",
-                                  "poweron": False,
-                                  "useconditions": True}
+            self.dewheater = {"name": None,
+                              "hostname": "FQDN",
+                              "protocol": "string",
+                              "port": "0000",
+                              "powerlevel": "50",
+                              "poweron": False,
+                              "useconditions": True}
         else:
-            self.dewheaterinfo = dewheater
+            self.dewheater = dewheater
+
+    def setcovercalibrator(self, name: str, hostname: str = "FQDN", protocol: str = "", port: int = 1242):
+        ad = {"hostname": hostname, "protocol": protocol, "port": port}
+        covercalibrator = Port(name, "Port", associateddata=ad, avaliable=True)
+        self.addnonhierarchical(covercalibrator)
 
     def loadfromjson(self, filename="controller_config.json"):
         pass
@@ -362,6 +325,42 @@ class Ota(Hierarchy):
 
 
 class Port(Hierarchy):
+
+    def __init__(self, name,
+                 level,
+                 focuser: dict = None,
+                 camera: dict = None,
+                 filterwheel: dict = None,
+                 lastupdated=datetime.datetime.now().isoformat(),
+                 associateddata=None,
+                 controlled=None,
+                 avaliable=False):
+        """
+
+        :param name: name of the associated item such as a port or station
+        :param level: level of the item in the Hierarchy (["Site", "Station", "Mount", "OTA", "Port"])
+        :param lastupdated: Date when this item was last updated
+        :param associateddata: Any required data like com port, author, admin email
+        :param controlled: All controlled items one level below of type inhertied(Hierarchy)
+        :param avaliable: If the avaliable item or resource is currently avaliable or off/needs maintenance
+        """
+
+        super().__init__(name, level, lastupdated, associateddata, controlled, avaliable)
+        if focuser is None:
+            self.focuser = {"name": None, "hostname": None, "protocol": None, "port": 1234}
+        else:
+            self.focuser = focuser
+
+        if camera is None:
+            self.camera = {"name": None, "hostname": None, "protocol": None}
+        else:
+            self.camera = camera
+
+        if focuser is None:
+            self.filterwheel = {"name": None, "hostname": None, "protocol": None, "port": 1234}
+        else:
+            self.filterwheel = filterwheel
+
     def loadfromjson(self, filename="controller_config.json"):
         pass
 
@@ -369,7 +368,7 @@ class Port(Hierarchy):
         pass
 
 
-class testing:
+class Testing:
     def __init__(self):
         self.test1()
 
@@ -377,16 +376,45 @@ class testing:
     def test1(filename="TestConfig", remove=True):
         port = Port(name="templatePort", level="Port", associateddata="15232", avaliable=False)
         port2 = Port(name="templatePort2", level="Port", associateddata="17231", avaliable=True)
-        OTA = Ota(name="templateOTA", level="OTA", associateddata="port controller", avaliable=False, controlled=[port])
-        OTA2 = Ota(name="templateOTA2", level="OTA", associateddata="port controller", avaliable=False,
+        ota = Ota(name="templateOTA",
+                  level="OTA",
+                  otatype="template",
+                  aperture=1.3,
+                  obstruction="wall",
+                  fratio=4.3,
+                  spectralrange=(300 * 10 ** -9, 1000 * 10 ** -9),
+                  associateddata="port controller",
+                  avaliable=False,
+                  controlled=[port])
+        ota2 = Ota(name="templateOTA2",
+                   level="OTA",
+                   otatype="template2",
+                   aperture=1.3,
+                   obstruction="wall",
+                   fratio=4.3,
+                   spectralrange=(300 * 10 ** -9, 1000 * 10 ** -9),
+                   associateddata="port controller",
+                   avaliable=False,
                    controlled=[port2])
         mount = Mount(name="templateMount", level="Mount", associateddata="OTA controller", avaliable=False,
-                      controlled=[OTA])
+                      controlled=[ota])
         mount2 = Mount(name="templateMount2", level="Mount", associateddata="OTA controller", avaliable=False,
-                       controlled=[OTA2])
-        station = Station(name="templateStation", level="Station", associateddata="Mount controller", avaliable=False,
+                       controlled=[ota2])
+        station = Station(name="templateStation",
+                          level="Station",
+                          stationtype="Dome",
+                          hostname="localhost",
+                          interfacetype="fast",
+                          associateddata="Mount controller",
+                          avaliable=False,
                           controlled=[mount, mount2])
-        site = Site(name="templateSite", level="Site", associateddata="Station controller", avaliable=False,
+        site = Site(name="templateSite",
+                    level="Site",
+                    location=(51.234, 52.324),
+                    elevation=74,
+                    tzoffset=0.94,
+                    associateddata="Station controller",
+                    avaliable=False,
                     controlled=[station])
         controller = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[site])
         controller.savetojson(filename)
@@ -397,8 +425,13 @@ class testing:
             os.remove(filename)
             assert controller.listallcontrolled() == controller2.listallcontrolled()
 
+    @staticmethod
+    def loadtest(filename="controllerconfig.json"):
+        controller2 = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[])
+        controller2.loadfromjson(filename)
+        return controller2.listallcontrolled()
 
-class reqhandlerforcontroller:
+class ReqHandlerRorController:
 
     @staticmethod
     def on_get(req, resp):
@@ -416,7 +449,7 @@ class reqhandlerforcontroller:
 # in larger applications the app is created in a separate file
 
 
-class serverinstance:
+class ServerInstance:
     def __init__(self, host: str = "localhost", port: int = 2000, controllerconfig: str = "contconfig.json"):
         """
 
@@ -429,7 +462,7 @@ class serverinstance:
         self.controllerconfig = controllerconfig
 
         self.app = falcon.App()
-        reqobj = reqhandlerforcontroller()
+        reqobj = ReqHandlerRorController()
         self.app.add_route('/controller', reqobj)
 
         print("Server starting...")
