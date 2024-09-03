@@ -1,6 +1,6 @@
 <h1> PyObs Hub  </h1>
-PyObsHub is an attempt to write tsomethign that combines a semi-hiarchical map of avaiulable astronomical instruments (camera, spectrometers, etc) with a set of scheduled and ad-hoc requests sunbmitted by users and scheduled by the server. 
-It is intended for use by a single person over their kit of a single telescope. an astronomy club or society over multiple sets of kit or globally by an umlimited set of users across multiple time zones. 
+PyObsHub is an attempt to write something that combines a semi-hiarchical map of available astronomical instruments (camera, guider, spectrometer, etc) with a set of scheduled and ad-hoc requests sunbmitted by users and scheduled by the server. 
+It is intended for use both by a single person over their kit of a single telescope. an astronomy club or society over multiple distributed sets of kit or globally by an umlimited set of users across multiple time zones. 
 
 It is inspired by : 
 <ul>
@@ -10,13 +10,14 @@ It is inspired by :
 <li>https://github.com/larrylart/Unimap</li>
 </ul>
 
+The [Wiki](https://github.com/skybadger/PyObsHub/wiki) describes the internals in more detail. 
 
 <h2>Design </h2>
 The system wil look something like this. 
 <img src="multi site server system.png">
 The GUi is the client to access and register instruments and observations. 
 The server does all the hardwork of running the dynamic schedule or schedules and operating the remote instruments. 
-The server implemetns the Alpaca and Indi remote protocols for ASCOM and INDI device control 
+The server implements the Alpaca and Indi remote protocols for ASCOM and INDI device control 
 
 Next steps
 <ul>
@@ -29,6 +30,14 @@ Next steps
   <li> Add user oauth2 token support for role based access against trusted peer servers. </li>
   <li> Add certificate support for server API over SSL.</li>
     
+Dependencies
+PySched available through PyPi
+expressX
+GraphQL
+QT6 - GUI
+ASCOM ALPACA device interface spec. 
+INDI device interface spec
+
 </ul>
 
 <h2>Licensing </h2>
