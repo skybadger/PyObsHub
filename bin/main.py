@@ -30,4 +30,4 @@ if __name__ == "__main__":
                       2000,
                       "controllerconfig.json")
 
-    #testing()
+    print("Ending main!")
