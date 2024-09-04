@@ -9,7 +9,7 @@ import astropy.coordinates as ascod
 # for gui
 from PyObsHub.Gui import gui as fe
 """
-from PyObsHub.Server import serverInstance as Si
+import Server.serverInstance as Si
 
 """
 def testing():
@@ -23,11 +23,11 @@ if __name__ == "__main__":
     print("Running main...")
     # fe.start()   ##GUI start
     Si.Testing.test1("controllerconfig.json", False)
-    Si.Testing.loadtest("controllerconfig.json")
+    Si.Testing.test1("test.json", True)
 
-    """
+
     serverObj = Si.ServerInstance("localhost",
                                   2000,
                                   "controllerconfig.json")
-    """
+
     print("Ending main!")

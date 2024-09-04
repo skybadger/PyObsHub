@@ -431,18 +431,32 @@ class Testing:
         controller2.loadfromjson(filename)
         return controller2.listallcontrolled()
 
-class ReqHandlerRorController:
 
-    @staticmethod
-    def on_get(req, resp):
+class ReqHandlerRorController:
+    def __init__(self, serverheircontroller, controllerthread):
+        self.serverheircontroller = serverheircontroller
+        self.controllerthread = controllerthread
+
+    def on_get(self, req, resp):
         """Handles GET requests"""
-        send = req.context
-        print(send)
+        params = req.query_string
+        paramlist = params.split("&")
+        method = None
+        extraoptions = {}
+        for param in paramlist:
+            key, value = param.split("=")
+            if key == "method":
+                method = value
+            else:
+                extraoptions[key] = value
+
+        print(method, extraoptions)
+
+        respbody = self.serverheircontroller.listallcontrolled()
+        print(respbody)
         resp.status = falcon.HTTP_200
         resp.content_type = falcon.MEDIA_JSON
-        responsedict = {"app": 300, "coins": 200}
-        print(json.dumps(responsedict))
-        resp.text = json.dumps(responsedict)
+        resp.text = str(respbody)
 
 
 # falcon.App instances are callable WSGI apps
@@ -450,7 +464,7 @@ class ReqHandlerRorController:
 
 
 class ServerInstance:
-    def __init__(self, host: str = "localhost", port: int = 2000, controllerconfig: str = "contconfig.json"):
+    def __init__(self, host: str = "localhost", port: int = 2000, controllerconfig: str = "contconfig.json", timeout=1800):
         """
 
         :param host: String of hosted ip for the server
@@ -461,15 +475,6 @@ class ServerInstance:
         self.port = port
         self.controllerconfig = controllerconfig
 
-        self.app = falcon.App()
-        reqobj = ReqHandlerRorController()
-        self.app.add_route('/controller', reqobj)
-
-        print("Server starting...")
-        self.serverthread = threading.Thread(target=self.startserver, daemon=True)
-        self.serverthread.start()
-        print("Server started!")
-
         print("Loading controller config...")
         self.controller = Hierarchy(name="ServerController", level="Controller", avaliable=True)
         self.controllerthread = threading.Thread(target=self.controller.loadfromjson, args=(self.controllerconfig,))
@@ -477,12 +482,27 @@ class ServerInstance:
         self.controllerthread.join()
         print("Controller config loaded!")
 
-        tempthread = threading.Timer(5, self.turnserveroff)
+        self.app = falcon.App()
+        reqobj = ReqHandlerRorController(self.controller, self.controllerthread)
+        self.app.add_route('/controller', reqobj)
+
+        print("Server starting...")
+        self.serverthread = threading.Thread(target=self.startserver, daemon=True)
+        self.serverthread.start()
+        print("Server started!")
+
+
+        tempthread = threading.Timer(timeout, self.turnserveroff)
         tempthread.start()
 
+
         self.serveronline = True
-        while self.serveronline:
-            pass
+        try:
+            while self.serveronline:
+                pass
+        except KeyboardInterrupt:
+            self.serveronline = False
+            tempthread.cancel()
         print("Ending server!")
 
     def startserver(self):

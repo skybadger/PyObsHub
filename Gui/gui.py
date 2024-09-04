@@ -1,5 +1,10 @@
 import flet as ft
+import requests
+import ast
+import threading
 # Annoyingly, when closing the program, there is no "niceway" to avoid the closing console error
+
+
 def mapstuff(page: ft.page):
     items = {"Earth": [1, -2],
              "moon": [-5, -5],
@@ -19,7 +24,30 @@ def mapstuff(page: ft.page):
     st = ft.Stack(points, width=mapDims[0], height=mapDims[1])
     page.add(st)
 
+class serverquery:
+    def __init__(self, host="localhost", port=8000, url=""):
+        if url == "":
+            self.address = "http://"+host+":"+str(port)
+        else:
+            self.address = url
+
+
+
+    def getfullheirarchy(self, returntext=None, path="/controller"):
+        req = requests.get(self.address+path,
+                           {"method": "getfullheirarchy", "avaliable": "True"},
+                           allow_redirects=False,
+                           timeout=5)
+        print(req.status_code)
+        self.returntext = None
+        if req.ok:
+            print(req.text)
+            returntext = req.text
+            self.returntext = returntext
+
+
 def window(page: ft.page):
+
     def event(e):
         print("event", e.data)
 
@@ -33,9 +61,27 @@ def window(page: ft.page):
 
     def tab_clicked(e):
         nonlocal tabcolour
-        print(tabcolour)
         tabcolour = tabcolours[e.control.text]
-        page.controls[1].controls[0].content.controls[1] = ft.Container(content=ft.Text(e.control.text, width=sidebarsize), bgcolor=tabcolour, expand=True)
+        returncontent = None
+
+        global sq
+        threadret = threading.Thread(target=sq.getfullheirarchy, args=[])
+        threadret.start()
+        replacement = ft.Container(content=ft.Text("Waiting on server reply...",
+                                                   width=sidebarsize),
+                                   bgcolor=tabcolour,
+                                   expand=True)
+        page.controls[1].controls[0].content.controls[1] = replacement
+        page.update()
+        threadret.join()
+        respobj = ast.literal_eval(sq.returntext)
+        column = ft.Column()
+        replacement = ft.Container(content=ft.Text(respobj[0],
+                                                   width=sidebarsize),
+                                   bgcolor=tabcolour,
+                                   expand=True)
+
+        page.controls[1].controls[0].content.controls[1] = replacement
         page.update()
 
     def drawHome():
@@ -114,13 +160,20 @@ def window(page: ft.page):
     page.padding = spacing
     page.spacing = spacing
 
-    page.window_min_width, page.window.max_width = 400, 1920
+    page.window.min_width, page.window.max_width = 400, 1920
     page.window.min_height, page.window.max_height = 300, 1080
 
     page.window.on_event = event
-    page.on_resize = redrawToFit
+    page.on_resized = redrawToFit
     page.update()
 
 
+
 def start():
+    global sq
+    sq = serverquery(host="localhost", port=2000)
     ft.app(target=window)
+
+
+sq = None
+start()
