@@ -203,6 +203,13 @@ def window(page: ft.page):
     currentpage = "home"
     hometab = "sys"
     tabcolour = tabcolours["System"]
+    """ there should be a number of pages associated with each tab, each of which is populated to present the content the tab is currently pointing to. 
+    e.g the system tab might be asking the user for user details to create a new user. HEnce the main body page should have an object which can be activiated in the main window
+    which collects this information in teh context of a User object and the tab knows how to save it back to the server. 
+    """
+    tabs = tabs[3]
+    pages = pages[1]
+    
     global sq
     systemtabobj = systemTab(sq)
 
