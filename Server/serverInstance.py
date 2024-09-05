@@ -70,34 +70,96 @@ class Hierarchy:
         else:
             raise AttributeError("Controlled is of type None, probably because item is of level 'Port'!")
 
+    def findobjectbyname(self, name: str = "ServerController"):
+        returnlist = []
+        if self.name != name:
+            if self.controlled is None:
+                return []
+            else:
+                for obj in self.controlled:
+                    returnlist += obj.findobjectbyname(name)
+                return returnlist
+        else:
+            return [self]     
+
     def listcontrolled(self):
         """
         :return: List of controlled objects
         """
         return self.controlled
 
-    def listallcontrolled(self):
+    def listallcontrolled(self, returninfo=None):
         """
-
+        Executes a recursive search for all controlled items, returning either the object or object.returninfo
         :return: Entire hierarchy from the current object level upwards
         """
-        return self.returncontrolledobjs(self)
+        return self.returncontrolledobjs(self, returninfo=returninfo)
 
     @staticmethod
-    def returncontrolledobjs(obj):
+    def returncontrolledobjs(obj, returninfo=None):
         """
-        Will break if there is a cyclical reference! Do not use, instead use listallcontrolled
+        Will break if there is a cyclical reference! Do not use! Instead, use listallcontrolled.
         :param obj: Object of inherited class (hierarchy)
         :return: List of controlled item
         """
         if obj.level != obj.hierarchy[-1]:
             returnlist = []
             for objectItem in obj.controlled:
-                returnlist.append(obj.returncontrolledobjs(objectItem))
-            return [obj.name, returnlist]
+                returnlist += obj.returncontrolledobjs(objectItem, returninfo)
+                
+            objdict = {key: value for key, value in obj.__dict__.items() if not key.startswith('__') and not callable(key)}    
+            if returninfo is not None:
+                return [objdict[returninfo], returnlist]
+            else:
+                return [obj, returnlist]
         else:
-            return obj.name
+            objdict = {key: value for key, value in obj.__dict__.items() if not key.startswith('__') and not callable(key)}    
+            if returninfo is not None:
+                return [objdict[returninfo]]
+            else:
+                return [obj]
+ 
+    @staticmethod
+    def keys(d, c = []):
+        return [i for a, b in d.items() for i in ([c+[a]] if not isinstance(b, dict) else keys(b, c+[a]))]
+ 
+    def listjson(self, level="Controller"):
+        savedict = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
+        savedict["controlled"] = []
+        
+        if level != "Port":
+            for siteObj in self.controlled:
+                sitedict = {key: value for key, value in siteObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                sitedict["controlled"] = []
 
+                if level != "OTA":
+                    for stationObj in siteObj.controlled:
+                        stationdict = {key: value for key, value in stationObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                        stationdict["controlled"] = []
+
+                        if level != "Mount":
+                            for mountObj in stationObj.controlled:
+                                mountdict = {key: value for key, value in mountObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                                mountdict["controlled"] = []
+
+                                if level != "Station":
+                                    for OTAObj in mountObj.controlled:
+                                        otadict = {key: value for key, value in OTAObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                                        otadict["controlled"] = []
+
+                                        if level != "Site":
+                                            for portObj in OTAObj.controlled:
+                                                portdict = {key: value for key, value in portObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                                                portdict["controlled"] = None
+
+                                                otadict["controlled"].append(portdict)
+                                        mountdict["controlled"].append(otadict)
+                                stationdict["controlled"].append(mountdict)
+                        sitedict["controlled"].append(stationdict)
+                savedict["controlled"].append(sitedict)
+            
+        return savedict  
+ 
     def loadfromjson(self, filename="controller_config.json"):
         try:
             open(filename, "r")
@@ -152,34 +214,7 @@ class Hierarchy:
             self.controlled = sites
 
     def savetojson(self, filename="controller_config.json"):
-        savedict = dict()
-        savedict["controlled"] = []
-        for siteObj in self.controlled:
-            sitedict = {key: value for key, value in siteObj.__dict__.items() if not key.startswith('__') and not callable(key)}
-            sitedict["controlled"] = []
-
-            for stationObj in siteObj.controlled:
-                stationdict = {key: value for key, value in stationObj.__dict__.items() if not key.startswith('__') and not callable(key)}
-                stationdict["controlled"] = []
-
-                for mountObj in stationObj.controlled:
-                    mountdict = {key: value for key, value in mountObj.__dict__.items() if not key.startswith('__') and not callable(key)}
-                    mountdict["controlled"] = []
-
-                    for OTAObj in mountObj.controlled:
-                        otadict = {key: value for key, value in OTAObj.__dict__.items() if not key.startswith('__') and not callable(key)}
-                        otadict["controlled"] = []
-
-                        for portObj in OTAObj.controlled:
-                            portdict = {key: value for key, value in portObj.__dict__.items() if not key.startswith('__') and not callable(key)}
-                            portdict["controlled"] = None
-
-                            otadict["controlled"].append(portdict)
-                        mountdict["controlled"].append(otadict)
-                    stationdict["controlled"].append(mountdict)
-                sitedict["controlled"].append(stationdict)
-
-            savedict["controlled"].append(sitedict)
+        savedict = self.listjson("Controller")
 
         with open(filename, "w") as openfile:
             json.dump(savedict, openfile, indent=6)
@@ -423,7 +458,7 @@ class Testing:
             controller2 = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[])
             controller2.loadfromjson(filename)
             os.remove(filename)
-            assert controller.listallcontrolled() == controller2.listallcontrolled()
+            assert controller.listallcontrolled("name") == controller2.listallcontrolled("name")
 
     @staticmethod
     def loadtest(filename="controllerconfig.json"):
@@ -451,12 +486,55 @@ class ReqHandlerRorController:
                 extraoptions[key] = value
 
         print(method, extraoptions)
-
-        respbody = self.serverheircontroller.listallcontrolled()
+        if method == "getfullheirarchy":
+            respbody = self.serverheircontroller.listallcontrolled("name")
+        elif method == "findobjectbyname":
+            # Extra options must be supplied with a name entry
+            tempobj = self.serverheircontroller.findobjectbyname(extraoptions["name"])
+            respbody = []
+            for item in tempobj:
+                objdict = {key: value for key, value in item.__dict__.items()
+                           if not key.startswith('__') and not callable(key)}
+                respbody.append(objdict)
+        elif method == "listallcontrolledundername":
+            tempobj = self.serverheircontroller.findobjectbyname(extraoptions["name"])
+            respbody = tempobj.listallcontrolled()
+            
+        # If possible, keep rest body as a list type
         print(respbody)
         resp.status = falcon.HTTP_200
         resp.content_type = falcon.MEDIA_JSON
-        resp.text = str(respbody)
+        resp.data = bytes(json.dumps(respbody), "utf-8")
+        
+    def on_post(self, req, resp):
+        """Handles GET requests"""
+        params = req.query_string
+        paramlist = params.split("&")
+        method = None
+        extraoptions = {}
+        for param in paramlist:
+            key, value = param.split("=")
+            if key == "method":
+                method = value
+            else:
+                extraoptions[key] = value
+
+        print(method, extraoptions)
+        if method == "checkheirisuptodate":
+            curjson = json.load(req.json)
+            nameofhighestobj = extraoptions["highestname"]
+            foundobject = self.serverheircontroller.findobjjectbyname(nameofhighestobj)[0]
+            lastupdatedlist = foundobject.listallcontrolled("lastupdated")
+            print(curjson)
+            c=[]
+            print(foundobject.keys(curjson, c))
+            respbody = {"placeholder": "big funny"}
+            
+        # If possible, keep rest body as a list type
+        print(respbody)
+        resp.status = falcon.HTTP_200
+        resp.content_type = falcon.MEDIA_JSON
+        resp.data = bytes(json.dumps(respbody), "utf-8")
 
 
 # falcon.App instances are callable WSGI apps
@@ -491,10 +569,8 @@ class ServerInstance:
         self.serverthread.start()
         print("Server started!")
 
-
         tempthread = threading.Timer(timeout, self.turnserveroff)
         tempthread.start()
-
 
         self.serveronline = True
         try:

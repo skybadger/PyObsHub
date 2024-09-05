@@ -2,6 +2,7 @@ import flet as ft
 import requests
 import ast
 import threading
+import json
 # Annoyingly, when closing the program, there is no "niceway" to avoid the closing console error
 
 
@@ -32,7 +33,7 @@ class serverquery:
             self.address = url
 
 
-
+    # All get methods first
     def getfullheirarchy(self, returntext=None, path="/controller"):
         req = requests.get(self.address+path,
                            {"method": "getfullheirarchy", "avaliable": "True"},
@@ -44,7 +45,41 @@ class serverquery:
             print(req.text)
             returntext = req.text
             self.returntext = returntext
-
+            
+    def getallforsys(self, path="/controller"):
+        req = requests.get(self.address+path,
+                           {"method": "getfullheirarchy", "params": "everything"},
+                           allow_redirects=False,
+                           timeout=5)
+        if req.ok:
+            self.returntext = req.text
+    
+    # Then post, for sending data to the server
+    def checkheirisuptodate(self, curheir: str, path="/controller"):     
+        req = requests.post(self.address+path,
+                            params={"method": "checkheirisuptodate",
+                                    "highestname": "templateStation"},
+                           json=json.dumps(curheir),
+                           allow_redirects=False,
+                           timeout=5)
+        
+        print(req.status_code)
+        if req.ok:
+            self.returntext = req.json
+        
+class systemTab:
+    color = "#ff2354"
+    def __init__(self, sq):
+        self.sq = sq
+        try:
+            sysfile = open("syspage.json","r")
+            sysinfo = json.load(sysfile)
+        except FileNotFoundError:
+            print("No local copy found, downloading from server...")
+            self.sq.getallforsys()
+        else:
+            self.sq.checkheirisuptodate(sysinfo)
+            
 
 def window(page: ft.page):
 
@@ -67,15 +102,16 @@ def window(page: ft.page):
         global sq
         threadret = threading.Thread(target=sq.getfullheirarchy, args=[])
         threadret.start()
+        
         replacement = ft.Container(content=ft.Text("Waiting on server reply...",
                                                    width=sidebarsize),
                                    bgcolor=tabcolour,
                                    expand=True)
         page.controls[1].controls[0].content.controls[1] = replacement
         page.update()
+        
         threadret.join()
         respobj = ast.literal_eval(sq.returntext)
-        column = ft.Column()
         replacement = ft.Container(content=ft.Text(respobj[0],
                                                    width=sidebarsize),
                                    bgcolor=tabcolour,
@@ -153,6 +189,8 @@ def window(page: ft.page):
     currentpage = "home"
     hometab = "sys"
     tabcolour = tabcolours["System"]
+    global sq
+    systemTabObj = systemTab(sq)
 
     # page setup
     page.window.width = 600
