@@ -1,5 +1,5 @@
 # Made by Alex Harrison (alex.harrison.xela@gmail.com)
-# under creative commons 3.0 lisence
+# under creative commons 3.0 license
 
 """
 import astropy as aspy
