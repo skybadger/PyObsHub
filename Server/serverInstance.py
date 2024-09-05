@@ -118,10 +118,9 @@ class Hierarchy:
                 return [objdict[returninfo]]
             else:
                 return [obj]
- 
-    @staticmethod
-    def keys(d, c = []):
-        return [i for a, b in d.items() for i in ([c+[a]] if not isinstance(b, dict) else keys(b, c+[a]))]
+
+    def keys(self, d, c = []):
+        return [i for a, b in d.items() for i in ([c+[a]] if not isinstance(b, dict) else self.keys(b, c+[a]))]
  
     def listjson(self, level="Controller"):
         savedict = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
@@ -487,10 +486,15 @@ class ReqHandlerRorController:
 
         print(method, extraoptions)
         if method == "getfullheirarchy":
-            respbody = self.serverheircontroller.listallcontrolled("name")
+            extract = extraoptions["returntype"]
+            tempobj = self.serverheircontroller.findobjectbyname(extraoptions["highestname"])
+            if extract == "everything":
+                respbody = tempobj[0].listjson(tempobj[0].level)
+            else:
+                respbody = tempobj[0].listallcontrolled(extract)
         elif method == "findobjectbyname":
             # Extra options must be supplied with a name entry
-            tempobj = self.serverheircontroller.findobjectbyname(extraoptions["name"])
+            tempobj = self.serverheircontroller.findobjectbyname(extraoptions["highestname"])
             respbody = []
             for item in tempobj:
                 objdict = {key: value for key, value in item.__dict__.items()
@@ -504,7 +508,7 @@ class ReqHandlerRorController:
         print(respbody)
         resp.status = falcon.HTTP_200
         resp.content_type = falcon.MEDIA_JSON
-        resp.data = bytes(json.dumps(respbody), "utf-8")
+        resp.text = json.dumps(respbody)
         
     def on_post(self, req, resp):
         """Handles GET requests"""
@@ -521,9 +525,10 @@ class ReqHandlerRorController:
 
         print(method, extraoptions)
         if method == "checkheirisuptodate":
-            curjson = json.load(req.json)
+            curjson = json.loads(req.bounded_stream.read().decode('utf-8'))
+            print(curjson)
             nameofhighestobj = extraoptions["highestname"]
-            foundobject = self.serverheircontroller.findobjjectbyname(nameofhighestobj)[0]
+            foundobject = self.serverheircontroller.findobjectbyname(nameofhighestobj)[0]
             lastupdatedlist = foundobject.listallcontrolled("lastupdated")
             print(curjson)
             c=[]

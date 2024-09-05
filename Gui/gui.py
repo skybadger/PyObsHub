@@ -3,6 +3,8 @@ import requests
 import ast
 import threading
 import json
+
+
 # Annoyingly, when closing the program, there is no "niceway" to avoid the closing console error
 
 
@@ -11,13 +13,13 @@ def mapstuff(page: ft.page):
              "moon": [-5, -5],
              "sun": [9, 7]}
 
-    position = [0,0]
+    position = [0, 0]
     mapDims = (800, 300)
 
     points = []
     for idxItem, idxValue in items.items():
-        RightVal = mapDims[0]/2*(1+idxValue[0]/10)
-        HeightVal = mapDims[1]/2*(1+idxValue[1]/10)
+        RightVal = mapDims[0] / 2 * (1 + idxValue[0] / 10)
+        HeightVal = mapDims[1] / 2 * (1 + idxValue[1] / 10)
         print(RightVal, idxValue[0])
         circle = ft.IconButton(icon=ft.icons.CIRCLE, right=RightVal, height=HeightVal)
         points.append(circle)
@@ -25,17 +27,18 @@ def mapstuff(page: ft.page):
     st = ft.Stack(points, width=mapDims[0], height=mapDims[1])
     page.add(st)
 
+
 class serverquery:
     def __init__(self, host="localhost", port=8000, url=""):
+        self.returntext = ""
         if url == "":
-            self.address = "http://"+host+":"+str(port)
+            self.address = "http://" + host + ":" + str(port)
         else:
             self.address = url
 
-
     # All get methods first
     def getfullheirarchy(self, returntext=None, path="/controller"):
-        req = requests.get(self.address+path,
+        req = requests.get(self.address + path,
                            {"method": "getfullheirarchy", "avaliable": "True"},
                            allow_redirects=False,
                            timeout=5)
@@ -45,44 +48,56 @@ class serverquery:
             print(req.text)
             returntext = req.text
             self.returntext = returntext
-            
+
     def getallforsys(self, path="/controller"):
-        req = requests.get(self.address+path,
-                           {"method": "getfullheirarchy", "params": "everything"},
+        req = requests.get(self.address + path,
+                           {"method": "getfullheirarchy",
+                            "returntype": "everything",
+                            "highestname": "templateStation"},
                            allow_redirects=False,
                            timeout=5)
-        if req.ok:
-            self.returntext = req.text
-    
-    # Then post, for sending data to the server
-    def checkheirisuptodate(self, curheir: str, path="/controller"):     
-        req = requests.post(self.address+path,
-                            params={"method": "checkheirisuptodate",
-                                    "highestname": "templateStation"},
-                           json=json.dumps(curheir),
-                           allow_redirects=False,
-                           timeout=5)
-        
         print(req.status_code)
         if req.ok:
+            self.returntext = req.json()
+            print(req.json())
+
+    # Then post, for sending data to the server
+    def checkheirisuptodate(self, curheir: str, path="/controller"):
+        req = requests.post(self.address + path,
+                            params={"method": "checkheirisuptodate",
+                                    "highestname": "templateStation"},
+                            json=json.dumps(curheir),
+                            allow_redirects=False,
+                            timeout=5)
+
+        print(req.status_code)
+
+        if req.ok:
             self.returntext = req.json
-        
+        else:
+            raise RuntimeError("Request returned anomolous...")
+
+
 class systemTab:
     color = "#ff2354"
+
     def __init__(self, sq):
         self.sq = sq
         try:
-            sysfile = open("syspage.json","r")
+            sysfile = open("syspage.json", "r")
             sysinfo = json.load(sysfile)
         except FileNotFoundError:
             print("No local copy found, downloading from server...")
             self.sq.getallforsys()
+            self.localheir = self.sq.returntext
+            with open("syspage.json", "w") as file:
+                json.dump(self.localheir, file, indent=6)
         else:
+            print("Checking local heir is upto date...")
             self.sq.checkheirisuptodate(sysinfo)
-            
+
 
 def window(page: ft.page):
-
     def event(e):
         print("event", e.data)
 
@@ -102,14 +117,14 @@ def window(page: ft.page):
         global sq
         threadret = threading.Thread(target=sq.getfullheirarchy, args=[])
         threadret.start()
-        
+
         replacement = ft.Container(content=ft.Text("Waiting on server reply...",
                                                    width=sidebarsize),
                                    bgcolor=tabcolour,
                                    expand=True)
         page.controls[1].controls[0].content.controls[1] = replacement
         page.update()
-        
+
         threadret.join()
         respobj = ast.literal_eval(sq.returntext)
         replacement = ft.Container(content=ft.Text(respobj[0],
@@ -121,7 +136,7 @@ def window(page: ft.page):
         page.update()
 
     def drawHome():
-        secondheight = page.window.height-bannerheight
+        secondheight = page.window.height - bannerheight
         nonlocal spacing
         page.clean()
         banner = ft.Container(content=ft.Text("", width=page.window.width, height=bannerheight),
@@ -141,12 +156,11 @@ def window(page: ft.page):
                                 width=sidebarsize
                                 )
 
-
         sidebar = ft.Container(
             ft.Column([
-                    sidebarbuttons,
-                    ft.Container(content=ft.Text("System", width=sidebarsize), bgcolor=tabcolour, expand=True)
-                ],
+                sidebarbuttons,
+                ft.Container(content=ft.Text("System", width=sidebarsize), bgcolor=tabcolour, expand=True)
+            ],
                 expand=1,
                 height=secondheight,
                 alignment=ft.MainAxisAlignment.START,
@@ -165,8 +179,8 @@ def window(page: ft.page):
         page.add(banner, second)
 
     def redrawToFit(e):
-        #print("Redraw graphics to fit screen")
-        #print("New page size:", page.window.width, page.window.height)
+        # print("Redraw graphics to fit screen")
+        # print("New page size:", page.window.width, page.window.height)
         if currentpage == "home":
             drawHome()
 
@@ -190,7 +204,7 @@ def window(page: ft.page):
     hometab = "sys"
     tabcolour = tabcolours["System"]
     global sq
-    systemTabObj = systemTab(sq)
+    systemtabobj = systemTab(sq)
 
     # page setup
     page.window.width = 600
@@ -204,7 +218,6 @@ def window(page: ft.page):
     page.window.on_event = event
     page.on_resized = redrawToFit
     page.update()
-
 
 
 def start():
