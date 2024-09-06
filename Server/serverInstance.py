@@ -100,6 +100,8 @@ class Hierarchy:
         """
         Will break if there is a cyclical reference! Do not use! Instead, use listallcontrolled.
         :param obj: Object of inherited class (hierarchy)
+        :param returninfo: If None, returns object list, otherwise, returns paramter of return info list such as "name"
+                           or "lastupdated"
         :return: List of controlled item
         """
         if obj.level != obj.hierarchy[-1]:
@@ -107,48 +109,57 @@ class Hierarchy:
             for objectItem in obj.controlled:
                 returnlist += obj.returncontrolledobjs(objectItem, returninfo)
                 
-            objdict = {key: value for key, value in obj.__dict__.items() if not key.startswith('__') and not callable(key)}    
+            objdict = {key: value for key,
+                       value in obj.__dict__.items()
+                       if not key.startswith('__') and not callable(key)}
+
             if returninfo is not None:
                 return [objdict[returninfo], returnlist]
             else:
                 return [obj, returnlist]
         else:
-            objdict = {key: value for key, value in obj.__dict__.items() if not key.startswith('__') and not callable(key)}    
+            objdict = {key: value for key,
+                       value in obj.__dict__.items()
+                       if not key.startswith('__') and not callable(key)}
             if returninfo is not None:
                 return [objdict[returninfo]]
             else:
                 return [obj]
 
-    def keys(self, d, c = []):
-        return [i for a, b in d.items() for i in ([c+[a]] if not isinstance(b, dict) else self.keys(b, c+[a]))]
- 
+
     def listjson(self, level="Controller"):
-        savedict = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
+        savedict = {key: value for key, value in self.__dict__.items()
+                    if not key.startswith('__') and not callable(key)}
         savedict["controlled"] = []
         
         if level != "Port":
             for siteObj in self.controlled:
-                sitedict = {key: value for key, value in siteObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                sitedict = {key: value for key, value in siteObj.__dict__.items()
+                            if not key.startswith('__') and not callable(key)}
                 sitedict["controlled"] = []
 
                 if level != "OTA":
                     for stationObj in siteObj.controlled:
-                        stationdict = {key: value for key, value in stationObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                        stationdict = {key: value for key, value in stationObj.__dict__.items()
+                                       if not key.startswith('__') and not callable(key)}
                         stationdict["controlled"] = []
 
                         if level != "Mount":
                             for mountObj in stationObj.controlled:
-                                mountdict = {key: value for key, value in mountObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                                mountdict = {key: value for key, value in mountObj.__dict__.items()
+                                             if not key.startswith('__') and not callable(key)}
                                 mountdict["controlled"] = []
 
                                 if level != "Station":
                                     for OTAObj in mountObj.controlled:
-                                        otadict = {key: value for key, value in OTAObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                                        otadict = {key: value for key, value in OTAObj.__dict__.items()
+                                                   if not key.startswith('__') and not callable(key)}
                                         otadict["controlled"] = []
 
                                         if level != "Site":
                                             for portObj in OTAObj.controlled:
-                                                portdict = {key: value for key, value in portObj.__dict__.items() if not key.startswith('__') and not callable(key)}
+                                                portdict = {key: value for key, value in portObj.__dict__.items()
+                                                            if not key.startswith('__') and not callable(key)}
                                                 portdict["controlled"] = None
 
                                                 otadict["controlled"].append(portdict)
@@ -471,8 +482,8 @@ class ReqHandlerRorController:
         self.serverheircontroller = serverheircontroller
         self.controllerthread = controllerthread
 
-    def on_get(self, req, resp):
-        """Handles GET requests"""
+    @staticmethod
+    def reqsplit(req, printdebug=False):
         params = req.query_string
         paramlist = params.split("&")
         method = None
@@ -484,7 +495,15 @@ class ReqHandlerRorController:
             else:
                 extraoptions[key] = value
 
-        print(method, extraoptions)
+        if printdebug:
+            print(method, extraoptions)
+        return method, extraoptions
+
+    def on_get(self, req, resp):
+        """Handles GET requests"""
+        method, extraoptions = self.reqsplit(req, True)
+        respbody = ""
+
         if method == "getfullheirarchy":
             extract = extraoptions["returntype"]
             tempobj = self.serverheircontroller.findobjectbyname(extraoptions["highestname"])
@@ -512,27 +531,14 @@ class ReqHandlerRorController:
         
     def on_post(self, req, resp):
         """Handles GET requests"""
-        params = req.query_string
-        paramlist = params.split("&")
-        method = None
-        extraoptions = {}
-        for param in paramlist:
-            key, value = param.split("=")
-            if key == "method":
-                method = value
-            else:
-                extraoptions[key] = value
-
-        print(method, extraoptions)
+        method, extraoptions = self.reqsplit(req, True)
+        respbody = ""
         if method == "checkheirisuptodate":
-            curjson = json.loads(req.bounded_stream.read().decode('utf-8'))
-            print(curjson)
+            curjson = json.loads(req.body.read())
             nameofhighestobj = extraoptions["highestname"]
             foundobject = self.serverheircontroller.findobjectbyname(nameofhighestobj)[0]
             lastupdatedlist = foundobject.listallcontrolled("lastupdated")
             print(curjson)
-            c=[]
-            print(foundobject.keys(curjson, c))
             respbody = {"placeholder": "big funny"}
             
         # If possible, keep rest body as a list type
@@ -547,7 +553,10 @@ class ReqHandlerRorController:
 
 
 class ServerInstance:
-    def __init__(self, host: str = "localhost", port: int = 2000, controllerconfig: str = "contconfig.json", timeout=1800):
+    def __init__(self, host: str = "localhost",
+                 port: int = 2000,
+                 controllerconfig: str = "contconfig.json",
+                 timeout=86400):
         """
 
         :param host: String of hosted ip for the server
