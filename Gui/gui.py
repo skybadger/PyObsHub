@@ -94,10 +94,12 @@ class ServerQuery:
 class SystemTab:
     color = "#ff2354"
 
-    def __init__(self, sqn, bgcolour, sidebarsize=220, scale=100):
+    def __init__(self, sqn, bgcolour, page, sidebarsize=220, scale=100, offsetgrowth = 10):
         self.sq = sqn
         self.bgcolour = bgcolour
         self.scale = scale
+        self.page = page
+        self.offsetgrowth = offsetgrowth
         self.sidebarsize = sidebarsize
         self.sidebarcontents = ft.Container(ft.Text(""))
 
@@ -114,19 +116,95 @@ class SystemTab:
         with open(syspagename, "w") as file:
             json.dump(self.localheir, file, indent=6)
 
-        self.treecontrainer = ft.Container(content=ft.Column(),
+        self.treecontrainer = ft.Container(content=ft.Column(spacing=0),
                                            bgcolor=self.bgcolour,
                                            expand=True,
                                            alignment=ft.Alignment(0.0, -1.0))
         self.treecontrainer.content.controls.append(self.displaytreeitem(self.localheir, offset=0))
-        self.dropdowned = {"name": self.localheir["name"], "dropped": False}
+        self.treeinfo = {"name": self.localheir["name"], "offset": 0, "dropped": False, "controlled": []}
 
     def displayavaliabletree(self, navigating=[]):
         return self.treecontrainer
 
     def displaylist(self, e):
-        print(e.control.content.controls[1])
-        pass
+        name = e.control.content.controls[1].value
+        print(name)
+        namelist = self.treeinfoscraper(self.treeinfo,"name")
+        dictlist = self.treeinfoscraper(self.treeinfo)
+        idx = namelist.index(name)
+        temptreeinfo = dictlist[idx]
+        print(temptreeinfo)
+        if temptreeinfo["dropped"] == False and temptreeinfo["controlled"] == []:
+            temptreeinfo["dropped"] = True
+            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
+            localobjs = self.treeinfoscraper(self.localheir["controlled"])
+            controlledobjs = localobjs[idx]
+            for objects in controlledobjs:
+                item = self.displaytreeitem(objects, offset=temptreeinfo["offset"]+self.offsetgrowth)
+                self.treecontrainer.content.controls.append(item)
+                temptreeinfo["controlled"].append({"name": objects["name"], "offset": temptreeinfo["offset"]+self.offsetgrowth, "dropped": False, "controlled": []})
+                
+        elif self.treeinfo["dropped"] == True:
+            self.treeinfo["dropped"] == False
+            e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
+            listofnames = self.treeinfoscraper(self.treeinfo, "name")
+            listofnames.pop(0)
+            numpopped = 0
+            i=0
+            localtopop = list(self.treecontrainer.content.controls)
+            for cont in localtopop:
+                contname = cont.content.controls[0].controls[1].content.controls[1].value
+                if contname in listofnames:
+                    self.treecontrainer.content.controls.pop(i-numpopped)
+                    numpopped += 1 
+
+                i+=1
+        else:
+            self.treeinfo["dropped"] = True
+            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
+            #self.treedisplayer(self.treeinfo)
+            
+            """
+            idx = 0
+            for item in listofdropped:
+                dropped = True
+                if listofoffset[idx] == listofoffset[idx+1] & dropped:
+                    item = self.displaytreeitem(objects, offset=self.treeinfo["offset"]+self.offsetgrowth)
+                    self.treecontrainer.content.controls.append(item)
+            """
+            
+            
+            
+            
+        self.page.update()
+        
+    def treeinfoscraper(self, dictitem, requestinfo=None):   
+        if len(dictitem["controlled"]) == 0:
+            if requestinfo is None:
+                return [dictitem]
+            else:
+                return [dictitem[requestinfo]]
+        else:
+            returnlist = []
+            for item in dictitem["controlled"]:
+                returnlist += self.treeinfoscraper(item, requestinfo)
+                
+            if requestinfo is None:
+                return [dictitem, returnlist]
+            else:
+                return [dictitem[requestinfo], returnlist]
+                
+    def treedisplayer(self, obj):
+        if len(obj["controlled"]) == 0:
+            item = self.displaytreeitem(obj, offset=obj.treeinfo["offset"])
+            self.treecontrainer.content.controls.append(item)
+        else:
+            if obj["dropped"]:
+                for item in obj["controlled"]:
+                    self.treedisplayer(item)
+                    
+                
+            
 
     def displaytreeitem(self, dict, offset=0):
 
@@ -142,8 +220,10 @@ class SystemTab:
                                                   tooltip="Drop down for controlled items",
                                                   on_click=self.displaylist))"""
 
-        rowcontents = [ft.Container(ft.Text("", size=offset)),
-                       ft.Container(ft.Row(controls=[opt1, ft.Text("Clickme")]), on_click=self.displaylist)]
+        rowcontents = [ft.Container(ft.Text("", width=offset)),
+                       ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
+                                    on_click=self.displaylist,
+                                    padding=2)]
 
 
         baserow = ft.Row(controls=rowcontents,
@@ -172,7 +252,7 @@ class SystemTab:
                                                alignment=ft.MainAxisAlignment.START,
                                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
                                                spacing=5)
-                                , bgcolor=self.bgcolour, expand=True, alignment=ft.Alignment(0.0, -1.0))
+                                , bgcolor="#778899", alignment=ft.Alignment(0.0, -1.0))
 
         return baseitem
 
@@ -291,7 +371,7 @@ def window(page: ft.page):
     """
 
     global sq
-    systemtabobj = SystemTab(sq, tabcolours["System"], sidebarsize)
+    systemtabobj = SystemTab(sq, tabcolours["System"], page, sidebarsize)
 
     # page setup
     page.window.width = 600
