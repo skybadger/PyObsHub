@@ -7,6 +7,33 @@ import os
 
 
 # Annoyingly, when closing the program, there is no "niceway" to avoid the closing console error
+def leveltomult(level, rootlevel="Site"):
+    value = 0
+    if level == "Site":
+        value = 1
+    elif level == "Station":
+        value = 2
+    elif level == "Mount":
+        value = 3
+    elif level == "OTA":
+        value = 4
+    elif level == "Port":
+        value = 5
+
+    rootvalue = 0
+    if rootlevel == "Site":
+        rootvalue = 1
+    elif rootlevel == "Station":
+        rootvalue = 2
+    elif rootlevel == "Mount":
+        rootvalue = 3
+    elif rootlevel == "OTA":
+        rootvalue = 4
+    elif rootlevel == "Port":
+        rootvalue = 5
+
+    return value - rootvalue
+
 
 
 def mapstuff(page: ft.page):
@@ -55,7 +82,7 @@ class ServerQuery:
                 returntext = req.text
                 self.returntext = returntext
 
-    def getallforsys(self, path="/controller"):
+    def getallforsys(self, path="/controller", debug=False):
         try:
             req = requests.get(self.address + path,
                                {"method": "getfullheirarchy",
@@ -67,10 +94,12 @@ class ServerQuery:
             raise ConnectionError("This error occurs when the server cannot be connected to,\n"
                                   "the server is down or if do not have a steady internet connection.")
         else:
-            print(req.status_code)
+            if debug:
+                print(req.status_code)
             if req.ok:
                 self.returntext = req.json()
-                print(req.json())
+                if debug:
+                    print(req.json())
 
     # Then post, for sending data to the server
     """
@@ -121,32 +150,113 @@ class SystemTab:
                                            expand=True,
                                            alignment=ft.Alignment(0.0, -1.0))
         self.treecontrainer.content.controls.append(self.displaytreeitem(self.localheir, offset=0))
-        self.treeinfo = {"name": self.localheir["name"], "offset": 0, "dropped": False, "controlled": []}
+
 
     def displayavaliabletree(self, navigating=[]):
         return self.treecontrainer
 
+    """
     def displaylist(self, e):
         name = e.control.content.controls[1].value
         print(name)
-        namelist = self.treeinfoscraper(self.treeinfo,"name")
-        dictlist = self.treeinfoscraper(self.treeinfo)
-        idx = namelist.index(name)
-        temptreeinfo = dictlist[idx]
-        print(temptreeinfo)
-        if temptreeinfo["dropped"] == False and temptreeinfo["controlled"] == []:
+        finditem = self.findintreeinfo(self.treeinfo, name)
+        print(finditem)
+        print(len(finditem) == 1, not self.treeinfo["dropped"], not self.treeinfo["controlled"])
+
+        if len(finditem) == 1:
+            if not self.treeinfo["dropped"]:
+                self.treeinfo["dropped"] = True
+                e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
+                if not self.treeinfo["controlled"]:
+                    controlled = self.findcontrolledinheir(self.localheir, name)
+                    for tempobj in controlled:
+                        item = self.displaytreeitem(tempobj, offset=self.offsetgrowth)
+                        self.treecontrainer.content.controls.append(item)
+                        dictentry = {"name": tempobj["name"], "offset": self.offsetgrowth, "dropped": False, "controlled": []}
+                        self.treeinfo["controlled"].append(dictentry)
+                else:
+                    print("Dropped", self.treeinfo["dropped"])
+                    temp = self.finddroppedintree(self.treeinfo)
+                    for obj in temp:
+                        info = self.findintreeinfo(self.treeinfo, obj)
+                        item = self.displaytreeitem(info, offset=info["offset"])
+                        self.treecontrainer.content.controls.append(item)
+                    print("Temp", temp)
+
+            else:
+                e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
+                self.treeinfo["dropped"] = False
+                localtopop = list(self.treecontrainer.content.controls)
+                popped = 0
+                for i, cont in enumerate(localtopop):
+                    contname = cont.content.controls[0].controls[1].content.controls[1].value
+                    if contname != name:
+                        self.treecontrainer.content.controls.pop(i - popped)
+                        popped += 1
+
+
+                pass
+        elif len(finditem) == 2:
+            print("Not base item")
+            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
+            controlled = self.findcontrolledinheir(self.localheir, name)
+            rec = True
+            idx = 1
+            temp = ""
+            newsearch = ""
+            while rec:
+                idx = finditem[0]
+                temp = self.treeinfo["controlled"][idx]
+                newsearch = self.findintreeinfo(temp, name)
+                if len(newsearch) == 1:
+                    rec = False
+
+            if not temp["dropped"]:
+                temp["dropped"] = True
+                controlled = self.findcontrolledinheir(self.localheir, name)
+                localtopop = list(self.treecontrainer.content.controls)
+                insertpoint = 0
+                for i, cont in enumerate(localtopop):
+                    contname = cont.content.controls[0].controls[1].content.controls[1].value
+                    if contname == name:
+                        insertpoint = i
+                        break
+
+                insertidx = 1
+                for tempobj in controlled:
+                    item = self.displaytreeitem(tempobj, offset=self.offsetgrowth+temp["offset"])
+                    self.treecontrainer.content.controls.insert(insertpoint + insertidx, item)
+                    insertidx += 1
+                    # self.treecontrainer.content.controls.append(item)
+                    dictentry = {"name": tempobj["name"],
+                                 "offset": self.offsetgrowth+temp["offset"],
+                                 "dropped": False,
+                                 "controlled": []}
+                    temp["controlled"].append(dictentry)
+
+                self.replacetreeinfoentry(temp, finditem)
+            else:
+                pass
+
+        else:
+            print("Error")
+        
+        """"""
+        if not temptreeinfo["dropped"] and temptreeinfo["controlled"] == []:
             temptreeinfo["dropped"] = True
             e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
+            """"""
             localobjs = self.treeinfoscraper(self.localheir["controlled"])
             controlledobjs = localobjs[idx]
             for objects in controlledobjs:
                 item = self.displaytreeitem(objects, offset=temptreeinfo["offset"]+self.offsetgrowth)
                 self.treecontrainer.content.controls.append(item)
                 temptreeinfo["controlled"].append({"name": objects["name"], "offset": temptreeinfo["offset"]+self.offsetgrowth, "dropped": False, "controlled": []})
-                
-        elif self.treeinfo["dropped"] == True:
-            self.treeinfo["dropped"] == False
+              """"""
+        elif self.treeinfo["dropped"]:
+            self.treeinfo["dropped"] = False
             e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
+            """"""
             listofnames = self.treeinfoscraper(self.treeinfo, "name")
             listofnames.pop(0)
             numpopped = 0
@@ -159,71 +269,114 @@ class SystemTab:
                     numpopped += 1 
 
                 i+=1
+            """"""
         else:
             self.treeinfo["dropped"] = True
             e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
-            #self.treedisplayer(self.treeinfo)
+
             
-            """
+            
             idx = 0
             for item in listofdropped:
                 dropped = True
                 if listofoffset[idx] == listofoffset[idx+1] & dropped:
                     item = self.displaytreeitem(objects, offset=self.treeinfo["offset"]+self.offsetgrowth)
                     self.treecontrainer.content.controls.append(item)
-            """
             
-            
-            
-            
+        """"""
         self.page.update()
-        
-    def treeinfoscraper(self, dictitem, requestinfo=None):   
-        if len(dictitem["controlled"]) == 0:
-            if requestinfo is None:
-                return [dictitem]
-            else:
-                return [dictitem[requestinfo]]
+    """
+
+    def displayiteminfomationinmain(self):
+        # When a text box displayed is clicked, open the relevant information in the side window
+        # for now this can just be config and nothing important until dad has more info
+
+        # view current config
+
+        pass
+
+    def diplaylistofheir(self, e):
+        name = e.control.content.controls[1].value
+        localheir = self.findinheir(self.localheir, name)[0]
+        print(localheir)
+        if "dropped" not in localheir.keys():
+            localheir["dropped"] = False
+            level = localheir["level"]
+            rootlevel = self.localheir["level"]
+            offset = leveltomult(level, rootlevel) * self.offsetgrowth
+            localheir["offset"] = offset
+
+        if not localheir["dropped"]:
+            localheir["dropped"] = True
+            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
+            localtopop = list(self.treecontrainer.content.controls)
+            insertidx = 0
+            # Find the insert point for the items
+            for i, cont in enumerate(localtopop):
+                contname = cont.content.controls[0].controls[1].content.controls[1].value
+                if contname == name:
+                    insertidx = i+1
+                    break
+
+            # Add the controlled objects to the page dropdow
+            print("outside", insertidx)
+            self.findallcontrolledanddroppeditems(localheir["controlled"],
+                                                  localheir["offset"]+self.offsetgrowth,
+                                                  insertidx)
         else:
+            localheir["dropped"] = False
+            e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
+
+            pass
+
+
+        self.page.update()
+
+    def findallcontrolledanddroppeditems(self, controlled, offset, insertidx):
+        for tempobj in controlled:
+            if tempobj["level"] == "Port":
+                item = self.displaytreeitem(tempobj, offset=offset+self.offsetgrowth, clickable=False)
+            else:
+                item = self.displaytreeitem(tempobj, offset=offset+self.offsetgrowth, clickable=True)
+
+            self.treecontrainer.content.controls.insert(insertidx, item)
+            print(insertidx)
+            insertidx += 1
+            if "dropped" in tempobj.keys():
+                if tempobj["dropped"] and not tempobj[controlled]:
+                    insertidx += self.findallcontrolledanddroppeditems(tempobj["controlled"],
+                                                                       offset+self.offsetgrowth,
+                                                                       insertidx)
+        return insertidx
+
+    def findinheir(self, obj, name):
+        if obj["name"] == name:
+            return [obj]
+        elif obj["name"] != name:
             returnlist = []
-            for item in dictitem["controlled"]:
-                returnlist += self.treeinfoscraper(item, requestinfo)
-                
-            if requestinfo is None:
-                return [dictitem, returnlist]
-            else:
-                return [dictitem[requestinfo], returnlist]
-                
-    def treedisplayer(self, obj):
-        if len(obj["controlled"]) == 0:
-            item = self.displaytreeitem(obj, offset=obj.treeinfo["offset"])
-            self.treecontrainer.content.controls.append(item)
-        else:
-            if obj["dropped"]:
-                for item in obj["controlled"]:
-                    self.treedisplayer(item)
-                    
-                
-            
+            for each in obj["controlled"]:
+                print(each)
+                returnlist += self.findinheir(each, name)
+            return returnlist
 
-    def displaytreeitem(self, dict, offset=0):
 
+    def displaytreeitem(self, dict, offset=0, clickable=True):
         root = dict["name"]
 
         iconsize = 20 * self.scale / 100
         textsize = 14 * self.scale / 100
 
-        opt1 = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#000000", size=iconsize)
-        """ft.Container(opt1, data="Help me"),
-                       ft.Container(ft.TextButton(text=root,
-                                                  style=ft.ButtonStyle(),
-                                                  tooltip="Drop down for controlled items",
-                                                  on_click=self.displaylist))"""
-
-        rowcontents = [ft.Container(ft.Text("", width=offset)),
-                       ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
-                                    on_click=self.displaylist,
-                                    padding=2)]
+        if clickable:
+            opt1 = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#000000", size=iconsize)
+            rowcontents = [ft.Container(ft.Text("", width=offset)),
+                           ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
+                                        on_click=self.diplaylistofheir,
+                                        padding=2)]
+        else:
+            opt1 = ft.Icon(name=ft.icons.ARROW_RIGHT, color="#000000", size=iconsize)
+            rowcontents = [ft.Container(ft.Text("", width=offset)),
+                           ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
+                                        padding=2)]
 
 
         baserow = ft.Row(controls=rowcontents,
