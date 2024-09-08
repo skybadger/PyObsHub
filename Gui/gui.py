@@ -287,18 +287,17 @@ class SystemTab:
         self.page.update()
     """
 
-    def displayiteminfomationinmain(self):
+    def displayiteminfomationinmain(self, e):
         # When a text box displayed is clicked, open the relevant information in the side window
         # for now this can just be config and nothing important until dad has more info
 
         # view current config
-
         pass
 
     def diplaylistofheir(self, e):
         name = e.control.content.controls[1].value
         localheir = self.findinheir(self.localheir, name)[0]
-        print(localheir)
+        # Setup
         if "dropped" not in localheir.keys():
             localheir["dropped"] = False
             level = localheir["level"]
@@ -306,6 +305,7 @@ class SystemTab:
             offset = leveltomult(level, rootlevel) * self.offsetgrowth
             localheir["offset"] = offset
 
+        # When Expanded
         if not localheir["dropped"]:
             localheir["dropped"] = True
             e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
@@ -319,15 +319,23 @@ class SystemTab:
                     break
 
             # Add the controlled objects to the page dropdow
-            print("outside", insertidx)
             self.findallcontrolledanddroppeditems(localheir["controlled"],
                                                   localheir["offset"]+self.offsetgrowth,
                                                   insertidx)
+        # When collapsed
         else:
             localheir["dropped"] = False
             e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
-
-            pass
+            names = self.findnamesofalltoremove(localheir)
+            popped = 0
+            for name in names:
+                localtopop = list(self.treecontrainer.content.controls)
+                for i, cont in enumerate(localtopop):
+                    contname = cont.content.controls[0].controls[1].content.controls[1].value
+                    if name == contname:
+                        self.treecontrainer.content.controls.remove(cont)
+                        popped += 1 
+                        break
 
 
         self.page.update()
@@ -343,7 +351,7 @@ class SystemTab:
             print(insertidx)
             insertidx += 1
             if "dropped" in tempobj.keys():
-                if tempobj["dropped"] and not tempobj[controlled]:
+                if tempobj["dropped"] and not tempobj["controlled"]:
                     insertidx += self.findallcontrolledanddroppeditems(tempobj["controlled"],
                                                                        offset+self.offsetgrowth,
                                                                        insertidx)
@@ -359,19 +367,45 @@ class SystemTab:
                 returnlist += self.findinheir(each, name)
             return returnlist
 
+    def findnamesofalltoremove(self, obj):
+        names = []
+        if obj["controlled"]:
+            for item in obj["controlled"]:
+                names.append(item["name"])
+                if "dropped" in item.keys():
+                    if item["dropped"]:
+                        print(item)
+                        names += self.findnamesofalltoremove(item)
+        return names
+            
+    def displaytreeitem(self, passdict, offset=0, clickable=True):
+        print(passdict)
+        root = passdict["name"]
 
-    def displaytreeitem(self, dict, offset=0, clickable=True):
-        root = dict["name"]
-
-        iconsize = 20 * self.scale / 100
+        iconsize = 14 * self.scale / 100
         textsize = 14 * self.scale / 100
+        textcolour = "#001122"
 
         if clickable:
-            opt1 = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#000000", size=iconsize)
-            rowcontents = [ft.Container(ft.Text("", width=offset)),
-                           ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
-                                        on_click=self.diplaylistofheir,
-                                        padding=2)]
+            offsetspace = ft.Container(ft.Text("", width=offset))
+            
+            iconelement = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#000000", size=iconsize)
+            textelement = ft.Text(root, visible=False)
+            iconbutton = ft.Container(ft.Row(controls=[iconelement, textelement]),
+                                      padding=2,
+                                      on_click=self.diplaylistofheir)
+            
+            butstyle = ft.ButtonStyle(alignment=ft.Alignment(-1, 0),
+                                      shape=ft.RoundedRectangleBorder(),
+                                      color=textcolour,
+                                      padding=0, 
+                                      visual_density=ft.VisualDensity.COMPACT)
+            textbutton = ft.TextButton(root,
+                                       on_click=self.displayiteminfomationinmain,
+                                       style=butstyle)
+            
+            rowcontents = [offsetspace, iconbutton, textbutton]
+            
         else:
             opt1 = ft.Icon(name=ft.icons.ARROW_RIGHT, color="#000000", size=iconsize)
             rowcontents = [ft.Container(ft.Text("", width=offset)),
@@ -385,27 +419,24 @@ class SystemTab:
                          spacing=0)
 
         onlinelist = [baserow]
-        try:
-            online = self.localheir["avaliable"]
-        except KeyError:
-            pass
-        else:
-            if online:
-                avaliable = "#2dc21f"
+        if "avaliable" in passdict.keys():
+            print("Avaliable", passdict["avaliable"])
+            if passdict["avaliable"]:
+                avaliable = "#2dc21f" # Green
             else:
-                avaliable = "#7d0610"
+                avaliable = "#bd0610" # Red
             containerpadd = 1
             onlinelist.append(ft.Container(content=ft.Icon(name="CIRCLE_SHARP",
-                                                           size=iconsize - containerpadd,
+                                                           size=(iconsize - containerpadd)*5/8,
                                                            color=avaliable),
-                                           bgcolor="#050c2b", padding=1, margin=0, shape=ft.BoxShape.CIRCLE))
+                                           bgcolor="#150707", padding=1, margin=0, shape=ft.BoxShape.CIRCLE))
 
         baseitem = ft.Container(content=ft.Row(controls=onlinelist,
                                                width=self.sidebarsize,
                                                alignment=ft.MainAxisAlignment.START,
                                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
                                                spacing=5)
-                                , bgcolor="#778899", alignment=ft.Alignment(0.0, -1.0))
+                                , bgcolor=self.bgcolour, alignment=ft.Alignment(0.0, -1.0))
 
         return baseitem
 
@@ -468,7 +499,7 @@ def window(page: ft.page):
         sidebar = ft.Container(
             ft.Column([
                 sidebarbuttons,
-                ft.Container(content=ft.Text("System", width=sidebarsize), bgcolor=tabcolour, expand=True)
+                ft.Container(content=systemtabobj.displayavaliabletree(), bgcolor=tabcolour, expand=True)
             ],
                 expand=1,
                 height=secondheight,

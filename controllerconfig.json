@@ -1,40 +1,40 @@
 {
       "name": "templateController",
       "level": "Controller",
-      "lastupdated": "2024-09-07T11:01:50.735052",
+      "lastupdated": "2024-09-08T01:43:51.990921",
       "associateddata": null,
       "controlled": [
             {
                   "name": "templateSite",
                   "level": "Site",
-                  "lastupdated": "2024-09-07T11:01:50.735112",
+                  "lastupdated": "2024-09-08T01:43:51.990984",
                   "associateddata": "Station controller",
                   "controlled": [
                         {
                               "name": "templateStation",
                               "level": "Station",
-                              "lastupdated": "2024-09-07T11:01:50.735144",
+                              "lastupdated": "2024-09-08T01:43:51.991010",
                               "associateddata": "Mount controller",
                               "controlled": [
                                     {
                                           "name": "templateMount",
                                           "level": "Mount",
-                                          "lastupdated": "2024-09-07T11:01:50.735167",
+                                          "lastupdated": "2024-09-08T01:43:51.991032",
                                           "associateddata": "OTA controller",
                                           "controlled": [
                                                 {
                                                       "name": "templateOTA",
                                                       "level": "OTA",
-                                                      "lastupdated": "2024-09-07T11:01:50.735187",
+                                                      "lastupdated": "2024-09-08T01:43:51.991060",
                                                       "associateddata": "port controller",
                                                       "controlled": [
                                                             {
                                                                   "name": "templatePort",
                                                                   "level": "Port",
-                                                                  "lastupdated": "2024-09-07T11:01:50.735208",
+                                                                  "lastupdated": "2024-09-08T01:43:51.991082",
                                                                   "associateddata": "15232",
                                                                   "controlled": null,
-                                                                  "avaliable": false,
+                                                                  "avaliable": true,
                                                                   "focuser": {
                                                                         "name": null,
                                                                         "hostname": null,
@@ -54,7 +54,7 @@
                                                                   }
                                                             }
                                                       ],
-                                                      "avaliable": false,
+                                                      "avaliable": true,
                                                       "otatype": "template",
                                                       "aperture": 1.3,
                                                       "obstruction": "wall",
@@ -74,7 +74,7 @@
                                                       }
                                                 }
                                           ],
-                                          "avaliable": false,
+                                          "avaliable": true,
                                           "horizonmap": [
                                                 0,
                                                 0,
@@ -90,22 +90,22 @@
                                     {
                                           "name": "templateMount2",
                                           "level": "Mount",
-                                          "lastupdated": "2024-09-07T11:01:50.735167",
+                                          "lastupdated": "2024-09-08T01:43:51.991032",
                                           "associateddata": "OTA controller",
                                           "controlled": [
                                                 {
                                                       "name": "templateOTA2",
                                                       "level": "OTA",
-                                                      "lastupdated": "2024-09-07T11:01:50.735187",
+                                                      "lastupdated": "2024-09-08T01:43:51.991060",
                                                       "associateddata": "port controller",
                                                       "controlled": [
                                                             {
                                                                   "name": "templatePort2",
                                                                   "level": "Port",
-                                                                  "lastupdated": "2024-09-07T11:01:50.735208",
+                                                                  "lastupdated": "2024-09-08T01:43:51.991082",
                                                                   "associateddata": "17231",
                                                                   "controlled": null,
-                                                                  "avaliable": true,
+                                                                  "avaliable": false,
                                                                   "focuser": {
                                                                         "name": null,
                                                                         "hostname": null,
@@ -159,7 +159,7 @@
                                           }
                                     }
                               ],
-                              "avaliable": false,
+                              "avaliable": true,
                               "stationtype": "Dome",
                               "hostname": "localhost",
                               "interfacetype": "fast",
@@ -170,7 +170,7 @@
                               "flatfielder": null
                         }
                   ],
-                  "avaliable": false,
+                  "avaliable": true,
                   "location": [
                         51.234,
                         52.324

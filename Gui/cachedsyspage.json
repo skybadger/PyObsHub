@@ -1,28 +1,28 @@
 {
       "name": "templateStation",
       "level": "Station",
-      "lastupdated": "2024-09-07T21:52:03.145525",
+      "lastupdated": "2024-09-08T01:43:51.991010",
       "associateddata": "Mount controller",
       "controlled": [
             {
                   "name": "templateMount",
                   "level": "Mount",
-                  "lastupdated": "2024-09-07T21:52:03.145525",
+                  "lastupdated": "2024-09-08T01:43:51.991032",
                   "associateddata": "OTA controller",
                   "controlled": [
                         {
                               "name": "templateOTA",
                               "level": "OTA",
-                              "lastupdated": "2024-09-07T21:52:03.145525",
+                              "lastupdated": "2024-09-08T01:43:51.991060",
                               "associateddata": "port controller",
                               "controlled": [
                                     {
                                           "name": "templatePort",
                                           "level": "Port",
-                                          "lastupdated": "2024-09-07T21:52:03.145525",
+                                          "lastupdated": "2024-09-08T01:43:51.991082",
                                           "associateddata": "15232",
                                           "controlled": [],
-                                          "avaliable": false,
+                                          "avaliable": true,
                                           "focuser": {
                                                 "name": null,
                                                 "hostname": null,
@@ -42,7 +42,7 @@
                                           }
                                     }
                               ],
-                              "avaliable": false,
+                              "avaliable": true,
                               "otatype": "template",
                               "aperture": 1.3,
                               "obstruction": "wall",
@@ -62,7 +62,7 @@
                               }
                         }
                   ],
-                  "avaliable": false,
+                  "avaliable": true,
                   "horizonmap": [
                         0,
                         0,
@@ -78,22 +78,22 @@
             {
                   "name": "templateMount2",
                   "level": "Mount",
-                  "lastupdated": "2024-09-07T21:52:03.145525",
+                  "lastupdated": "2024-09-08T01:43:51.991032",
                   "associateddata": "OTA controller",
                   "controlled": [
                         {
                               "name": "templateOTA2",
                               "level": "OTA",
-                              "lastupdated": "2024-09-07T21:52:03.145525",
+                              "lastupdated": "2024-09-08T01:43:51.991060",
                               "associateddata": "port controller",
                               "controlled": [
                                     {
                                           "name": "templatePort2",
                                           "level": "Port",
-                                          "lastupdated": "2024-09-07T21:52:03.145525",
+                                          "lastupdated": "2024-09-08T01:43:51.991082",
                                           "associateddata": "17231",
                                           "controlled": [],
-                                          "avaliable": true,
+                                          "avaliable": false,
                                           "focuser": {
                                                 "name": null,
                                                 "hostname": null,
@@ -147,7 +147,7 @@
                   }
             }
       ],
-      "avaliable": false,
+      "avaliable": true,
       "stationtype": "Dome",
       "hostname": "localhost",
       "interfacetype": "fast",

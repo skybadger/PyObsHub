@@ -419,8 +419,8 @@ class Testing:
 
     @staticmethod
     def test1(filename="TestConfig", remove=True):
-        port = Port(name="templatePort", level="Port", associateddata="15232", avaliable=False)
-        port2 = Port(name="templatePort2", level="Port", associateddata="17231", avaliable=True)
+        port = Port(name="templatePort", level="Port", associateddata="15232", avaliable=True)
+        port2 = Port(name="templatePort2", level="Port", associateddata="17231", avaliable=False)
         ota = Ota(name="templateOTA",
                   level="OTA",
                   otatype="template",
@@ -429,7 +429,7 @@ class Testing:
                   fratio=4.3,
                   spectralrange=(300 * 10 ** -9, 1000 * 10 ** -9),
                   associateddata="port controller",
-                  avaliable=False,
+                  avaliable=True,
                   controlled=[port])
         ota2 = Ota(name="templateOTA2",
                    level="OTA",
@@ -441,7 +441,7 @@ class Testing:
                    associateddata="port controller",
                    avaliable=False,
                    controlled=[port2])
-        mount = Mount(name="templateMount", level="Mount", associateddata="OTA controller", avaliable=False,
+        mount = Mount(name="templateMount", level="Mount", associateddata="OTA controller", avaliable=True,
                       controlled=[ota])
         mount2 = Mount(name="templateMount2", level="Mount", associateddata="OTA controller", avaliable=False,
                        controlled=[ota2])
@@ -451,7 +451,7 @@ class Testing:
                           hostname="localhost",
                           interfacetype="fast",
                           associateddata="Mount controller",
-                          avaliable=False,
+                          avaliable=True,
                           controlled=[mount, mount2])
         site = Site(name="templateSite",
                     level="Site",
@@ -459,7 +459,7 @@ class Testing:
                     elevation=74,
                     tzoffset=0.94,
                     associateddata="Station controller",
-                    avaliable=False,
+                    avaliable=True,
                     controlled=[station])
         controller = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[site])
         controller.savetojson(filename)
