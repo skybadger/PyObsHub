@@ -155,138 +155,6 @@ class SystemTab:
     def displayavaliabletree(self, navigating=[]):
         return self.treecontrainer
 
-    """
-    def displaylist(self, e):
-        name = e.control.content.controls[1].value
-        print(name)
-        finditem = self.findintreeinfo(self.treeinfo, name)
-        print(finditem)
-        print(len(finditem) == 1, not self.treeinfo["dropped"], not self.treeinfo["controlled"])
-
-        if len(finditem) == 1:
-            if not self.treeinfo["dropped"]:
-                self.treeinfo["dropped"] = True
-                e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
-                if not self.treeinfo["controlled"]:
-                    controlled = self.findcontrolledinheir(self.localheir, name)
-                    for tempobj in controlled:
-                        item = self.displaytreeitem(tempobj, offset=self.offsetgrowth)
-                        self.treecontrainer.content.controls.append(item)
-                        dictentry = {"name": tempobj["name"], "offset": self.offsetgrowth, "dropped": False, "controlled": []}
-                        self.treeinfo["controlled"].append(dictentry)
-                else:
-                    print("Dropped", self.treeinfo["dropped"])
-                    temp = self.finddroppedintree(self.treeinfo)
-                    for obj in temp:
-                        info = self.findintreeinfo(self.treeinfo, obj)
-                        item = self.displaytreeitem(info, offset=info["offset"])
-                        self.treecontrainer.content.controls.append(item)
-                    print("Temp", temp)
-
-            else:
-                e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
-                self.treeinfo["dropped"] = False
-                localtopop = list(self.treecontrainer.content.controls)
-                popped = 0
-                for i, cont in enumerate(localtopop):
-                    contname = cont.content.controls[0].controls[1].content.controls[1].value
-                    if contname != name:
-                        self.treecontrainer.content.controls.pop(i - popped)
-                        popped += 1
-
-
-                pass
-        elif len(finditem) == 2:
-            print("Not base item")
-            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
-            controlled = self.findcontrolledinheir(self.localheir, name)
-            rec = True
-            idx = 1
-            temp = ""
-            newsearch = ""
-            while rec:
-                idx = finditem[0]
-                temp = self.treeinfo["controlled"][idx]
-                newsearch = self.findintreeinfo(temp, name)
-                if len(newsearch) == 1:
-                    rec = False
-
-            if not temp["dropped"]:
-                temp["dropped"] = True
-                controlled = self.findcontrolledinheir(self.localheir, name)
-                localtopop = list(self.treecontrainer.content.controls)
-                insertpoint = 0
-                for i, cont in enumerate(localtopop):
-                    contname = cont.content.controls[0].controls[1].content.controls[1].value
-                    if contname == name:
-                        insertpoint = i
-                        break
-
-                insertidx = 1
-                for tempobj in controlled:
-                    item = self.displaytreeitem(tempobj, offset=self.offsetgrowth+temp["offset"])
-                    self.treecontrainer.content.controls.insert(insertpoint + insertidx, item)
-                    insertidx += 1
-                    # self.treecontrainer.content.controls.append(item)
-                    dictentry = {"name": tempobj["name"],
-                                 "offset": self.offsetgrowth+temp["offset"],
-                                 "dropped": False,
-                                 "controlled": []}
-                    temp["controlled"].append(dictentry)
-
-                self.replacetreeinfoentry(temp, finditem)
-            else:
-                pass
-
-        else:
-            print("Error")
-        
-        """"""
-        if not temptreeinfo["dropped"] and temptreeinfo["controlled"] == []:
-            temptreeinfo["dropped"] = True
-            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
-            """"""
-            localobjs = self.treeinfoscraper(self.localheir["controlled"])
-            controlledobjs = localobjs[idx]
-            for objects in controlledobjs:
-                item = self.displaytreeitem(objects, offset=temptreeinfo["offset"]+self.offsetgrowth)
-                self.treecontrainer.content.controls.append(item)
-                temptreeinfo["controlled"].append({"name": objects["name"], "offset": temptreeinfo["offset"]+self.offsetgrowth, "dropped": False, "controlled": []})
-              """"""
-        elif self.treeinfo["dropped"]:
-            self.treeinfo["dropped"] = False
-            e.control.content.controls[0].name = ft.icons.ADD_BOX_OUTLINED
-            """"""
-            listofnames = self.treeinfoscraper(self.treeinfo, "name")
-            listofnames.pop(0)
-            numpopped = 0
-            i=0
-            localtopop = list(self.treecontrainer.content.controls)
-            for cont in localtopop:
-                contname = cont.content.controls[0].controls[1].content.controls[1].value
-                if contname in listofnames:
-                    self.treecontrainer.content.controls.pop(i-numpopped)
-                    numpopped += 1 
-
-                i+=1
-            """"""
-        else:
-            self.treeinfo["dropped"] = True
-            e.control.content.controls[0].name = ft.icons.INDETERMINATE_CHECK_BOX_OUTLINED
-
-            
-            
-            idx = 0
-            for item in listofdropped:
-                dropped = True
-                if listofoffset[idx] == listofoffset[idx+1] & dropped:
-                    item = self.displaytreeitem(objects, offset=self.treeinfo["offset"]+self.offsetgrowth)
-                    self.treecontrainer.content.controls.append(item)
-            
-        """"""
-        self.page.update()
-    """
-
     def displayiteminfomationinmain(self, e):
         # When a text box displayed is clicked, open the relevant information in the side window
         # for now this can just be config and nothing important until dad has more info
@@ -348,7 +216,6 @@ class SystemTab:
                 item = self.displaytreeitem(tempobj, offset=offset+self.offsetgrowth, clickable=True)
 
             self.treecontrainer.content.controls.insert(insertidx, item)
-            print(insertidx)
             insertidx += 1
             if "dropped" in tempobj.keys():
                 if tempobj["dropped"] and not tempobj["controlled"]:
@@ -363,7 +230,6 @@ class SystemTab:
         elif obj["name"] != name:
             returnlist = []
             for each in obj["controlled"]:
-                print(each)
                 returnlist += self.findinheir(each, name)
             return returnlist
 
@@ -374,41 +240,38 @@ class SystemTab:
                 names.append(item["name"])
                 if "dropped" in item.keys():
                     if item["dropped"]:
-                        print(item)
                         names += self.findnamesofalltoremove(item)
         return names
-            
+
     def displaytreeitem(self, passdict, offset=0, clickable=True):
-        print(passdict)
         root = passdict["name"]
 
         iconsize = 14 * self.scale / 100
         textsize = 14 * self.scale / 100
-        textcolour = "#001122"
+        textcolour = "#ffffff"
 
         if clickable:
             offsetspace = ft.Container(ft.Text("", width=offset))
             
-            iconelement = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#000000", size=iconsize)
+            iconelement = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#ffffff", size=iconsize)
             textelement = ft.Text(root, visible=False)
             iconbutton = ft.Container(ft.Row(controls=[iconelement, textelement]),
                                       padding=2,
-                                      on_click=self.diplaylistofheir)
+                                      on_click=self.diplaylistofheir,
+                                      on_hover=self.conthover,
+                                      shape=ft.BoxShape.CIRCLE)
             
-            butstyle = ft.ButtonStyle(alignment=ft.Alignment(-1, 0),
-                                      shape=ft.RoundedRectangleBorder(),
+            butstyle = ft.ButtonStyle(shape=ft.RoundedRectangleBorder(),
                                       color=textcolour,
-                                      padding=0, 
-                                      visual_density=ft.VisualDensity.COMPACT)
+                                      padding=0)
             textbutton = ft.TextButton(root,
                                        on_click=self.displayiteminfomationinmain,
                                        style=butstyle)
             
             rowcontents = [offsetspace, iconbutton, textbutton]
-            
         else:
             opt1 = ft.Icon(name=ft.icons.ARROW_RIGHT, color="#000000", size=iconsize)
-            rowcontents = [ft.Container(ft.Text("", width=offset)),
+            rowcontents = [ft.Container(ft.Text("", width=offset, color="#000000")),
                            ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
                                         padding=2)]
 
@@ -420,16 +283,15 @@ class SystemTab:
 
         onlinelist = [baserow]
         if "avaliable" in passdict.keys():
-            print("Avaliable", passdict["avaliable"])
             if passdict["avaliable"]:
                 avaliable = "#2dc21f" # Green
             else:
                 avaliable = "#bd0610" # Red
-            containerpadd = 1
+            containerpadd = 2
             onlinelist.append(ft.Container(content=ft.Icon(name="CIRCLE_SHARP",
                                                            size=(iconsize - containerpadd)*5/8,
                                                            color=avaliable),
-                                           bgcolor="#150707", padding=1, margin=0, shape=ft.BoxShape.CIRCLE))
+                                           bgcolor="#150707", padding=containerpadd, margin=0, shape=ft.BoxShape.CIRCLE))
 
         baseitem = ft.Container(content=ft.Row(controls=onlinelist,
                                                width=self.sidebarsize,
@@ -440,10 +302,16 @@ class SystemTab:
 
         return baseitem
 
+    def conthover(self, e):
+        e.control.bgcolor = "#ff1010" if e.data == "true" else self.bgcolour
+        e.control.update()
+        self.page.update()
+
 
 def window(page: ft.page):
     def event(e):
-        print("event", e.data)
+        if e.data != "focus" or e.data != "blur":
+            print("event", e.data)
 
         if e.data == "close":
             pass
