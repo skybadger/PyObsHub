@@ -133,12 +133,13 @@ class SystemTab:
         syspagename = "cachedsyspage.json"
         cwd = os.getcwd()
         filename = os.path.dirname(cwd) + "/" + syspagename
+        print(filename, cwd)
         try:
             open(filename, "r")
         except FileNotFoundError:
             print("No local cache found, downloading from server...")
         else:
-            os.remove(syspagename)
+            os.remove(filename)
             print("Old local system tab cache found, dowloading updated...")
         self.sq.getallforsys()
         self.localheir = self.sq.returntext
@@ -152,7 +153,7 @@ class SystemTab:
         self.treecontrainer.content.controls.append(self.displaytreeitem(self.localheir, offset=0))
 
 
-    def displayavaliabletree(self, navigating=[]):
+    def displayavaliabletree(self):
         return self.treecontrainer
 
     def displayiteminfomationinmain(self, e):
@@ -306,6 +307,8 @@ class SystemTab:
         e.control.bgcolor = "#ff1010" if e.data == "true" else self.bgcolour
         e.control.update()
         self.page.update()
+
+
 
 
 def window(page: ft.page):
