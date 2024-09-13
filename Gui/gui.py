@@ -35,7 +35,6 @@ def leveltomult(level, rootlevel="Site"):
     return value - rootvalue
 
 
-
 def mapstuff(page: ft.page):
     items = {"Earth": [1, -2],
              "moon": [-5, -5],
@@ -152,7 +151,7 @@ class SystemTab:
         self.treecontrainer.content.controls.append(self.displaytreeitem(self.localheir, offset=0))
 
 
-    def displayavaliabletree(self, navigating=[]):
+    def displayavaliabletree(self):
         return self.treecontrainer
 
     def displayiteminfomationinmain(self, e):
@@ -308,6 +307,22 @@ class SystemTab:
         self.page.update()
 
 
+class mainwindowhandler:
+    def __init__(self):
+        self.screencontents = ft.Column(controls=[],
+                                        spacing=5,
+                                        expand=True,
+                                        scroll=ft.ScrollMode.ADAPTIVE,
+                                        on_scroll=self.on_column_scroll)
+
+    def on_column_scroll(self, e: ft.OnScrollEvent):
+        print(
+            f"Type: {e.event_type}, pixels: {e.pixels}, min_scroll_extent: {e.min_scroll_extent}, max_scroll_extent: {e.max_scroll_extent}"
+        )
+
+    def getwindowcontents(self):
+        return self.screencontents
+
 def window(page: ft.page):
     def event(e):
         if e.data != "focus" or e.data != "blur":
@@ -326,17 +341,10 @@ def window(page: ft.page):
         nonlocal tabcolour
         tabcolour = tabcolours[e.control.text]
 
-        replacement = ft.Container(content=ft.Text("Waiting on server reply...",
-                                                   width=sidebarsize),
-                                   bgcolor=tabcolour,
-                                   expand=True)
-        page.controls[1].controls[0].content.controls[1] = replacement
-        page.update()
-
         if e.control.text == "System":
             replacement = systemtabobj.displayavaliabletree()
         else:
-            replacement = ft.Container(content=ft.Text("System", width=sidebarsize),
+            replacement = ft.Container(content=ft.Text(e.control.text, width=sidebarsize),
                                        bgcolor=tabcolour,
                                        expand=True)
 
@@ -424,6 +432,7 @@ def window(page: ft.page):
 
     global sq
     systemtabobj = SystemTab(sq, tabcolours["System"], page, sidebarsize)
+    mainwindowobj = mainwindowhandler(sq)
 
     # page setup
     page.window.width = 600
