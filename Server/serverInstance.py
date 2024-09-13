@@ -171,12 +171,14 @@ class Hierarchy:
         return savedict  
  
     def loadfromjson(self, filename="controller_config.json"):
+        cwd = os.getcwd()
+        savepath = cwd  + "/" + filename
         try:
-            open(filename, "r")
+            open(savepath, "r")
         except FileNotFoundError:
             raise FileNotFoundError("No config file exists with that name!")
 
-        with open(filename, "r") as openfile:
+        with open(savepath, "r") as openfile:
             savedict = json.load(openfile)
             sitelist = savedict["controlled"]
             sites = []
@@ -225,8 +227,10 @@ class Hierarchy:
 
     def savetojson(self, filename="controller_config.json"):
         savedict = self.listjson("Controller")
+        cwd = os.getcwd()
+        savepath = cwd + "/" + filename
 
-        with open(filename, "w") as openfile:
+        with open(savepath, "w") as openfile:
             json.dump(savedict, openfile, indent=6)
 
 
@@ -467,7 +471,9 @@ class Testing:
         if remove:
             controller2 = Hierarchy(name="templateController", level="Controller", avaliable=True, controlled=[])
             controller2.loadfromjson(filename)
-            os.remove(filename)
+            cwd = os.getcwd()
+            savepath = cwd + "/" + filename
+            os.remove(savepath)
             assert controller.listallcontrolled("name") == controller2.listallcontrolled("name")
 
     @staticmethod

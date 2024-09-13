@@ -5,7 +5,6 @@ import threading
 import json
 import os
 
-
 # Annoyingly, when closing the program, there is no "niceway" to avoid the closing console error
 def leveltomult(level, rootlevel="Site"):
     value = 0
@@ -132,8 +131,10 @@ class SystemTab:
         self.sidebarcontents = ft.Container(ft.Text(""))
 
         syspagename = "cachedsyspage.json"
+        cwd = os.getcwd()
+        filename = os.path.dirname(cwd) + "/" + syspagename
         try:
-            open(syspagename, "r")
+            open(filename, "r")
         except FileNotFoundError:
             print("No local cache found, downloading from server...")
         else:
@@ -141,7 +142,7 @@ class SystemTab:
             print("Old local system tab cache found, dowloading updated...")
         self.sq.getallforsys()
         self.localheir = self.sq.returntext
-        with open(syspagename, "w") as file:
+        with open(filename, "w") as file:
             json.dump(self.localheir, file, indent=6)
 
         self.treecontrainer = ft.Container(content=ft.Column(spacing=0),
