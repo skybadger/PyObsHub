@@ -121,7 +121,7 @@ class ServerQuery:
 class SystemTab:
     color = "#ff2354"
 
-    def __init__(self, sqn, bgcolour, page, sidebarsize=220, scale=100, offsetgrowth = 10):
+    def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth = 10):
         self.sq = sqn
         self.bgcolour = bgcolour
         self.scale = scale
@@ -129,6 +129,7 @@ class SystemTab:
         self.offsetgrowth = offsetgrowth
         self.sidebarsize = sidebarsize
         self.sidebarcontents = ft.Container(ft.Text(""))
+        self.sidewindowobj = sidewindowobj
 
         syspagename = "cachedsyspage.json"
         cwd = os.getcwd()
@@ -152,16 +153,36 @@ class SystemTab:
                                            alignment=ft.Alignment(0.0, -1.0))
         self.treecontrainer.content.controls.append(self.displaytreeitem(self.localheir, offset=0))
 
+        self.sidewindow = [ft.Text("Template tooltip...")]
 
     def displayavaliabletree(self):
         return self.treecontrainer
+
+    def displayselecteditem(self):
+        return self.sidewindow
 
     def displayiteminfomationinmain(self, e):
         # When a text box displayed is clicked, open the relevant information in the side window
         # for now this can just be config and nothing important until dad has more info
 
         # view current config
-        pass
+        branchname = e.control.text
+        reducedheir = self.findinheir(self.localheir, branchname)[0]
+        displist = []
+        textsize = 12
+        for key, value in reducedheir.items():
+            if key != "Controlled":
+                displist.append(ft.Row([ft.Text(key,
+                                                size=textsize),
+                                        ft.TextField(value,
+                                                     text_size=textsize,
+                                                     content_padding=0,
+                                                     dense=True)]))
+
+        self.sidewindow = displist
+        self.sidewindowobj.setstruct(self.sidewindow)
+
+        self.page.update()
 
     def diplaylistofheir(self, e):
         name = e.control.content.controls[1].value
@@ -309,6 +330,33 @@ class SystemTab:
         self.page.update()
 
 
+class ScheduleTab:
+    def __init__(self):
+        pass
+
+
+class ObservedTab:
+    def __init__(self):
+        pass
+
+
+class SideWindowController:
+    def __init__(self, page):
+        self.page = page
+        self.struct = ft.Column(controls = [ft.Text("Temp class")])
+        self.page.update()
+
+    def setstruct(self, newstruct):
+        print(newstruct)
+        if type(newstruct) == list:
+            newitem = newstruct[0]
+            print(self.struct.controls)
+            self.struct.controls = newstruct
+        else:
+            self.struct = newstruct
+        #self.struct.controls += newstruct
+        #self.struct.controls.pop(0)
+        self.page.update()
 
 
 def window(page: ft.page):
@@ -370,7 +418,7 @@ def window(page: ft.page):
         sidebar = ft.Container(
             ft.Column([
                 sidebarbuttons,
-                ft.Container(content=systemtabobj.displayavaliabletree(), bgcolor=tabcolour, expand=True)
+                ft.Container(content=systemtabobj.treecontrainer, bgcolor=tabcolour, expand=True)
             ],
                 expand=1,
                 height=secondheight,
@@ -378,7 +426,7 @@ def window(page: ft.page):
                 spacing=0
             ))
 
-        mainwindow = ft.Container(content=ft.Text(""),
+        mainwindow = ft.Container(content=sidewindowobj.struct,
                                   bgcolor="#3300ff",
                                   height=secondheight,
                                   expand=True)
@@ -426,7 +474,13 @@ def window(page: ft.page):
     """
 
     global sq
-    systemtabobj = SystemTab(sq, tabcolours["System"], page, sidebarsize)
+
+    sidewindowobj = SideWindowController(page)
+    sidewindow = ft.Column(controls=[ft.Text("Placeholder text...")],
+                           scroll=ft.ScrollMode.AUTO)
+    sidewindowobj.setstruct(sidewindow)
+    systemtabobj = SystemTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
+
 
     # page setup
     page.window.width = 600
