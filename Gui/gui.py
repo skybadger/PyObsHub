@@ -5,6 +5,7 @@ import threading
 import json
 import os
 
+
 # Annoyingly, when closing the program, there is no "niceway" to avoid the closing console error
 def leveltomult(level, rootlevel="Site"):
     value = 0
@@ -51,6 +52,8 @@ def mapstuff(page: ft.page):
 
     st = ft.Stack(points, width=mapdims[0], height=mapdims[1])
     page.add(st)
+
+
 
 
 class ServerQuery:
@@ -118,19 +121,32 @@ class ServerQuery:
     """
 
 
-class SystemTab:
-    color = "#ff2354"
-
-    def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth = 10):
+class TabInheritance:
+    def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth=10):
         self.sq = sqn
         self.bgcolour = bgcolour
-        self.scale = scale
         self.page = page
-        self.offsetgrowth = offsetgrowth
-        self.sidebarsize = sidebarsize
-        self.sidebarcontents = ft.Container(ft.Text(""))
         self.sidewindowobj = sidewindowobj
+        self.sidebarsize = sidebarsize
+        self.scale = scale
+        self.offsetgrowth = offsetgrowth
 
+        self.lastevent = None
+        self.laste = None
+
+        global tabcolours
+        self.tabcolours = tabcolours
+
+
+class SystemTab(TabInheritance):
+    def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth=10):
+        super().__init__(sqn, bgcolour, page, sidewindowobj, sidebarsize, scale, offsetgrowth)
+        self.lastevent = None
+        self.laste = None
+
+        self.colour = self.tabcolours["System"]
+
+        # Check to see if te
         syspagename = "cachedsyspage.json"
         cwd = os.getcwd()
         filename = os.path.dirname(cwd) + "/" + syspagename
@@ -142,6 +158,8 @@ class SystemTab:
         else:
             os.remove(filename)
             print("Old local system tab cache found, dowloading updated...")
+
+        # Write dict to file
         self.sq.getallforsys()
         self.localheir = self.sq.returntext
         with open(filename, "w") as file:
@@ -161,23 +179,59 @@ class SystemTab:
     def displayselecteditem(self):
         return self.sidewindow
 
-    def displayiteminfomationinmain(self, e):
-        # When a text box displayed is clicked, open the relevant information in the side window
-        # for now this can just be config and nothing important until dad has more info
+    def redrawlastevent(self):
+        if self.laste is None:
+            self.sidewindow = [ft.Text("placeholder")]
+        elif self.lastevent == "displayiteminfomationinmain":
+            self.displayiteminfomationinmain(self.laste)
+        elif self.lastevent == "diplaylistofheir":
+            self.displayiteminfomationinmain(self.laste)
+        else:
+            raise NotImplementedError("No other events are listed! (Redraw last error)")
 
-        # view current config
+    def displayiteminfomationinmain(self, e):
+        """
+        When a tree button is clicked, display the infomation in a editable format
+        :param e: event to be triggered
+        :return: None
+        """
+        self.laste = e
+        self.lastevent = "displayiteminfomationinmain"
+
+        nicenames = {"name": "Name",
+                     "level": "Level",
+                     "lastupdated": "Last updated at",
+                     "associateddata": "Associated Data",
+                     "avaliable": "Avaliable",
+                     "stationtype": "Station type",
+                     "hostname": "Network host name",
+                     "interfacetype": "Interface type",
+                     "altlimits": "Altitude Limits"}
+
         branchname = e.control.text
         reducedheir = self.findinheir(self.localheir, branchname)[0]
         displist = []
-        textsize = 12
+
+        # Variable setup
+        textsize = 14 * self.scale / 100
+        contpadding = 5
+        nametextwidth = len(nicenames["hostname"]) * textsize / 1.8
         for key, value in reducedheir.items():
-            if key != "Controlled":
-                displist.append(ft.Row([ft.Text(key,
-                                                size=textsize),
-                                        ft.TextField(value,
-                                                     text_size=textsize,
-                                                     content_padding=0,
-                                                     dense=True)]))
+            if key in nicenames.keys():
+                name = nicenames[key]
+                nametext = ft.Text(name, size=textsize, width=nametextwidth)
+                maxlength = round(self.page.window.width - (
+                        nametextwidth + self.sidebarsize + contpadding * 4 + 20))
+
+                item = ft.Container(content=ft.Row([nametext,
+                                                    ft.Container(content=ft.TextField(value,
+                                                                                      text_size=textsize,
+                                                                                      content_padding=contpadding,
+                                                                                      dense=True),
+                                                                 width=maxlength)
+                                                    ]),
+                                    padding=contpadding)
+                displist.append(item)
 
         self.sidewindow = displist
         self.sidewindowobj.setstruct(self.sidewindow)
@@ -185,6 +239,9 @@ class SystemTab:
         self.page.update()
 
     def diplaylistofheir(self, e):
+        self.laste = e
+        self.lastevent = "diplaylistofheir"
+
         name = e.control.content.controls[1].value
         localheir = self.findinheir(self.localheir, name)[0]
         # Setup
@@ -205,12 +262,12 @@ class SystemTab:
             for i, cont in enumerate(localtopop):
                 contname = cont.content.controls[0].controls[1].content.controls[1].value
                 if contname == name:
-                    insertidx = i+1
+                    insertidx = i + 1
                     break
 
             # Add the controlled objects to the page dropdow
             self.findallcontrolledanddroppeditems(localheir["controlled"],
-                                                  localheir["offset"]+self.offsetgrowth,
+                                                  localheir["offset"] + self.offsetgrowth,
                                                   insertidx)
         # When collapsed
         else:
@@ -224,25 +281,24 @@ class SystemTab:
                     contname = cont.content.controls[0].controls[1].content.controls[1].value
                     if name == contname:
                         self.treecontrainer.content.controls.remove(cont)
-                        popped += 1 
+                        popped += 1
                         break
-
 
         self.page.update()
 
     def findallcontrolledanddroppeditems(self, controlled, offset, insertidx):
         for tempobj in controlled:
             if tempobj["level"] == "Port":
-                item = self.displaytreeitem(tempobj, offset=offset+self.offsetgrowth, clickable=False)
+                item = self.displaytreeitem(tempobj, offset=offset + self.offsetgrowth, clickable=False)
             else:
-                item = self.displaytreeitem(tempobj, offset=offset+self.offsetgrowth, clickable=True)
+                item = self.displaytreeitem(tempobj, offset=offset + self.offsetgrowth, clickable=True)
 
             self.treecontrainer.content.controls.insert(insertidx, item)
             insertidx += 1
             if "dropped" in tempobj.keys():
                 if tempobj["dropped"] and not tempobj["controlled"]:
                     insertidx += self.findallcontrolledanddroppeditems(tempobj["controlled"],
-                                                                       offset+self.offsetgrowth,
+                                                                       offset + self.offsetgrowth,
                                                                        insertidx)
         return insertidx
 
@@ -274,7 +330,7 @@ class SystemTab:
 
         if clickable:
             offsetspace = ft.Container(ft.Text("", width=offset))
-            
+
             iconelement = ft.Icon(name=ft.icons.ADD_BOX_OUTLINED, color="#ffffff", size=iconsize)
             textelement = ft.Text(root, visible=False)
             iconbutton = ft.Container(ft.Row(controls=[iconelement, textelement]),
@@ -282,21 +338,20 @@ class SystemTab:
                                       on_click=self.diplaylistofheir,
                                       on_hover=self.conthover,
                                       shape=ft.BoxShape.CIRCLE)
-            
+
             butstyle = ft.ButtonStyle(shape=ft.RoundedRectangleBorder(),
                                       color=textcolour,
                                       padding=0)
             textbutton = ft.TextButton(root,
                                        on_click=self.displayiteminfomationinmain,
                                        style=butstyle)
-            
+
             rowcontents = [offsetspace, iconbutton, textbutton]
         else:
             opt1 = ft.Icon(name=ft.icons.ARROW_RIGHT, color="#000000", size=iconsize)
             rowcontents = [ft.Container(ft.Text("", width=offset, color="#000000")),
                            ft.Container(ft.Row(controls=[opt1, ft.Text(root)]),
                                         padding=2)]
-
 
         baserow = ft.Row(controls=rowcontents,
                          alignment=ft.MainAxisAlignment.START,
@@ -306,14 +361,15 @@ class SystemTab:
         onlinelist = [baserow]
         if "avaliable" in passdict.keys():
             if passdict["avaliable"]:
-                avaliable = "#2dc21f" # Green
+                avaliable = "#2dc21f"  # Green
             else:
-                avaliable = "#bd0610" # Red
+                avaliable = "#bd0610"  # Red
             containerpadd = 2
             onlinelist.append(ft.Container(content=ft.Icon(name="CIRCLE_SHARP",
-                                                           size=(iconsize - containerpadd)*5/8,
+                                                           size=(iconsize - containerpadd) * 5 / 8,
                                                            color=avaliable),
-                                           bgcolor="#150707", padding=containerpadd, margin=0, shape=ft.BoxShape.CIRCLE))
+                                           bgcolor="#150707", padding=containerpadd, margin=0,
+                                           shape=ft.BoxShape.CIRCLE))
 
         baseitem = ft.Container(content=ft.Row(controls=onlinelist,
                                                width=self.sidebarsize,
@@ -330,32 +386,64 @@ class SystemTab:
         self.page.update()
 
 
-class ScheduleTab:
-    def __init__(self):
-        pass
+class ScheduleTab(TabInheritance):
+    def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth=10):
+        super().__init__(sqn, bgcolour, page, sidewindowobj, sidebarsize, scale, offsetgrowth)
+
+        self.lastevent = None
+        self.laste = None
+
+        self.colour = self.tabcolours["Schedule"]
+
+        self.sidebarcontents = ft.Container(ft.Text("Schedule sidebar"),
+                                            expand=True,
+                                            bgcolor=self.colour,
+                                            width=self.sidebarsize)
+        self.sidewindow = ft.Container(content=ft.Text("Schedule window..."), expand=True)
+
+    def redrawlastevent(self):
+        self.sidewindowobj.setstruct(self.sidewindow)
 
 
-class ObservedTab:
-    def __init__(self):
-        pass
+class ObservedTab(TabInheritance):
+    def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth=10):
+        super().__init__(sqn, bgcolour, page, sidewindowobj, sidebarsize, scale, offsetgrowth)
+
+        self.lastevent = None
+        self.laste = None
+
+        self.colour = self.tabcolours["Schedule"]
+
+        self.sidebarcontents = ft.Container(ft.Text("Observed sidebar"),
+                                            expand=True,
+                                            bgcolor=self.colour,
+                                            width=self.sidebarsize)
+        self.sidewindow = ft.Container(content=ft.Text("Observed window..."), expand=True)
+
+
+    def redrawlastevent(self):
+        self.sidewindowobj.setstruct(self.sidewindow)
 
 
 class SideWindowController:
-    def __init__(self, page):
+    def __init__(self, page, scale=100):
         self.page = page
-        self.struct = ft.Column(controls = [ft.Text("Temp class")])
+        self.struct = ft.Container(content=ft.Column(controls=[ft.Row([ft.Text("Save"),
+                                                                      ft.Text("revert"),
+                                                                      ft.Text("Close")],
+                                                     height=20 * scale/100),
+                                                     ft.Column(controls=[ft.Text("Temp class")])]),
+                                   padding=5)
+        # self.struct = ft.Column(controls=[ft.Text("Temp class")])
         self.page.update()
 
     def setstruct(self, newstruct):
-        print(newstruct)
-        if type(newstruct) == list:
-            newitem = newstruct[0]
-            print(self.struct.controls)
+        if isinstance(newstruct, list):
             self.struct.controls = newstruct
         else:
             self.struct = newstruct
-        #self.struct.controls += newstruct
-        #self.struct.controls.pop(0)
+        # self.struct.controls += newstruct
+        # self.struct.controls.pop(0)
         self.page.update()
 
 
@@ -374,51 +462,65 @@ def window(page: ft.page):
 
     # noinspection PyUnresolvedReferences
     def tab_clicked(e):
-        nonlocal tabcolour
+        nonlocal tabcolour, currenttab
         tabcolour = tabcolours[e.control.text]
 
-        replacement = ft.Container(content=ft.Text("Waiting on server reply...",
-                                                   width=sidebarsize),
-                                   bgcolor=tabcolour,
-                                   expand=True)
-        page.controls[1].controls[0].content.controls[1] = replacement
-        page.update()
-
         if e.control.text == "System":
+            currenttab = "System"
             replacement = systemtabobj.displayavaliabletree()
+            sidewindowobj.setstruct(systemtabobj.sidewindow)
+        elif e.control.text == "Schedule":
+            currenttab = "Schedule"
+            replacement = scheduleobj.sidebarcontents
+            sidewindowobj.setstruct(scheduleobj.sidewindow)
         else:
-            replacement = ft.Container(content=ft.Text("System", width=sidebarsize),
-                                       bgcolor=tabcolour,
-                                       expand=True)
+            currenttab = "Observed"
+            replacement = observedobj.sidebarcontents
+            sidewindowobj.setstruct(observedobj.sidewindow)
 
         page.controls[1].controls[0].content.controls[1] = replacement
         page.update()
 
     def drawhome():
         secondheight = page.window.height - bannerheight
-        nonlocal spacing
+        nonlocal spacing, tabcolour, sidebarsize
         page.clean()
         banner = ft.Container(content=ft.Text("", width=page.window.width, height=bannerheight),
                               bgcolor="#ffffff")
 
-        sidebarbuttons = ft.Row([ft.Container(ft.TextButton("System", on_click=tab_clicked, style=buttonstyleours),
+        sidebarbuttons = ft.Row([ft.Container(ft.TextButton("System",
+                                                            on_click=tab_clicked,
+                                                            style=buttonstyleours),
                                               bgcolor=tabcolours["System"],
                                               border_radius=ft.border_radius.vertical(top=5), expand=True),
-                                 ft.Container(ft.TextButton("Schedule", on_click=tab_clicked, style=buttonstyleours),
+                                 ft.Container(ft.TextButton("Schedule",
+                                                            on_click=tab_clicked,
+                                                            style=buttonstyleours),
                                               bgcolor=tabcolours["Schedule"],
                                               border_radius=ft.border_radius.vertical(top=5), expand=True),
-                                 ft.Container(ft.TextButton("Observed", on_click=tab_clicked, style=buttonstyleours),
+                                 ft.Container(ft.TextButton("Observed",
+                                                            on_click=tab_clicked,
+                                                            style=buttonstyleours),
                                               bgcolor=tabcolours["Observed"],
                                               border_radius=ft.border_radius.vertical(top=5), expand=True)],
                                 spacing=spacing,
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                width=sidebarsize
-                                )
+                                width=sidebarsize)
+
+        if currenttab == "System":
+            sidebarcontent = systemtabobj.treecontrainer
+            systemtabobj.redrawlastevent()
+        elif currenttab == "Schedule":
+            sidebarcontent = scheduleobj.sidebarcontents
+            scheduleobj.redrawlastevent()
+        else:
+            sidebarcontent = observedobj.sidebarcontents
+            observedobj.redrawlastevent()
 
         sidebar = ft.Container(
             ft.Column([
                 sidebarbuttons,
-                ft.Container(content=systemtabobj.treecontrainer, bgcolor=tabcolour, expand=True)
+                ft.Container(content=sidebarcontent, bgcolor=tabcolour, expand=True, width=sidebarsize)
             ],
                 expand=1,
                 height=secondheight,
@@ -440,10 +542,11 @@ def window(page: ft.page):
     def redrawtofit(e):
         # print("Redraw graphics to fit screen")
         # print("New page size:", page.window.width, page.window.height)
-        if currentpage == "home":
+        if currentpage == "Home":
             drawhome()
 
     # Themes
+    global tabcolours
     tabcolours = {"System": "#991020",
                   "Schedule": "#102099",
                   "Observed": "#109920"}
@@ -460,27 +563,19 @@ def window(page: ft.page):
     spacing = 2
 
     # variable setup
-    currentpage = "home"
+    currentpage = "Home"
+    currenttab = "System"
     tabcolour = tabcolours["System"]
-    """ there should be a number of pages associated with each tab, each of which is populated
-     to present the content the tab is currently pointing to. 
-    e.g the system tab might be asking the user for user details to create a new user. HEnce the main body page 
-    should have an object which can be activiated in the main window
-    which collects this information in teh context of a User object and the tab knows how to save it back to the server. 
-    """
-    """
-    tabs = tabs[3]
-    pages = pages[1]
-    """
-
-    global sq
 
     sidewindowobj = SideWindowController(page)
-    sidewindow = ft.Column(controls=[ft.Text("Placeholder text...")],
-                           scroll=ft.ScrollMode.AUTO)
-    sidewindowobj.setstruct(sidewindow)
-    systemtabobj = SystemTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
 
+    global sq
+    systemtabobj = SystemTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
+    systemtabobj.sidewindow = [ft.Text("Placeholder text for system...")]
+    scheduleobj = ScheduleTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
+    scheduleobj.sidewindow = [ft.Text("Placeholder text for schedule...")]
+    observedobj = ObservedTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
+    observedobj.sidewindow = [ft.Text("Placeholder text for observed...")]
 
     # page setup
     page.window.width = 600
@@ -503,4 +598,5 @@ def start():
 
 
 sq = None
+tabcolours = {}
 start()

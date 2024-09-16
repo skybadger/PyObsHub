@@ -1,37 +1,37 @@
 {
       "name": "templateController",
       "level": "Controller",
-      "lastupdated": "2024-09-09T10:39:06.846302",
+      "lastupdated": "2024-09-16T19:28:02.741372",
       "associateddata": null,
       "controlled": [
             {
                   "name": "templateSite",
                   "level": "Site",
-                  "lastupdated": "2024-09-09T10:39:06.847300",
+                  "lastupdated": "2024-09-16T19:28:02.741372",
                   "associateddata": "Station controller",
                   "controlled": [
                         {
                               "name": "templateStation",
                               "level": "Station",
-                              "lastupdated": "2024-09-09T10:39:06.847300",
+                              "lastupdated": "2024-09-16T19:28:02.741372",
                               "associateddata": "Mount controller",
                               "controlled": [
                                     {
                                           "name": "templateMount",
                                           "level": "Mount",
-                                          "lastupdated": "2024-09-09T10:39:06.847300",
+                                          "lastupdated": "2024-09-16T19:28:02.741372",
                                           "associateddata": "OTA controller",
                                           "controlled": [
                                                 {
                                                       "name": "templateOTA",
                                                       "level": "OTA",
-                                                      "lastupdated": "2024-09-09T10:39:06.847300",
+                                                      "lastupdated": "2024-09-16T19:28:02.741372",
                                                       "associateddata": "port controller",
                                                       "controlled": [
                                                             {
                                                                   "name": "templatePort",
                                                                   "level": "Port",
-                                                                  "lastupdated": "2024-09-09T10:39:06.847300",
+                                                                  "lastupdated": "2024-09-16T19:28:02.741372",
                                                                   "associateddata": "15232",
                                                                   "controlled": null,
                                                                   "avaliable": true,
@@ -90,19 +90,19 @@
                                     {
                                           "name": "templateMount2",
                                           "level": "Mount",
-                                          "lastupdated": "2024-09-09T10:39:06.847300",
+                                          "lastupdated": "2024-09-16T19:28:02.741372",
                                           "associateddata": "OTA controller",
                                           "controlled": [
                                                 {
                                                       "name": "templateOTA2",
                                                       "level": "OTA",
-                                                      "lastupdated": "2024-09-09T10:39:06.847300",
+                                                      "lastupdated": "2024-09-16T19:28:02.741372",
                                                       "associateddata": "port controller",
                                                       "controlled": [
                                                             {
                                                                   "name": "templatePort2",
                                                                   "level": "Port",
-                                                                  "lastupdated": "2024-09-09T10:39:06.847300",
+                                                                  "lastupdated": "2024-09-16T19:28:02.741372",
                                                                   "associateddata": "17231",
                                                                   "controlled": null,
                                                                   "avaliable": false,

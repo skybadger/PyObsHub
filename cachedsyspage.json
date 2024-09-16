@@ -1,25 +1,25 @@
 {
       "name": "templateStation",
       "level": "Station",
-      "lastupdated": "2024-09-16T11:25:02.546512",
+      "lastupdated": "2024-09-16T19:28:02.741372",
       "associateddata": "Mount controller",
       "controlled": [
             {
                   "name": "templateMount",
                   "level": "Mount",
-                  "lastupdated": "2024-09-16T11:25:02.546540",
+                  "lastupdated": "2024-09-16T19:28:02.741372",
                   "associateddata": "OTA controller",
                   "controlled": [
                         {
                               "name": "templateOTA",
                               "level": "OTA",
-                              "lastupdated": "2024-09-16T11:25:02.546572",
+                              "lastupdated": "2024-09-16T19:28:02.741372",
                               "associateddata": "port controller",
                               "controlled": [
                                     {
                                           "name": "templatePort",
                                           "level": "Port",
-                                          "lastupdated": "2024-09-16T11:25:02.546607",
+                                          "lastupdated": "2024-09-16T19:28:02.741372",
                                           "associateddata": "15232",
                                           "controlled": [],
                                           "avaliable": true,
@@ -78,19 +78,19 @@
             {
                   "name": "templateMount2",
                   "level": "Mount",
-                  "lastupdated": "2024-09-16T11:25:02.546540",
+                  "lastupdated": "2024-09-16T19:28:02.741372",
                   "associateddata": "OTA controller",
                   "controlled": [
                         {
                               "name": "templateOTA2",
                               "level": "OTA",
-                              "lastupdated": "2024-09-16T11:25:02.546572",
+                              "lastupdated": "2024-09-16T19:28:02.741372",
                               "associateddata": "port controller",
                               "controlled": [
                                     {
                                           "name": "templatePort2",
                                           "level": "Port",
-                                          "lastupdated": "2024-09-16T11:25:02.546607",
+                                          "lastupdated": "2024-09-16T19:28:02.741372",
                                           "associateddata": "17231",
                                           "controlled": [],
                                           "avaliable": false,
