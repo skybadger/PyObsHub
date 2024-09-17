@@ -35,6 +35,69 @@ def leveltomult(level, rootlevel="Site"):
     return value - rootvalue
 
 
+def colourscale(hexcolour: str, multiplier: int = 100, channel: str = "all"):
+    r = hexcolour[1:3]
+    g = hexcolour[3:5]
+    b = hexcolour[5:7]
+
+    rd = int(r, 16)
+    gd = int(g, 16)
+    bd = int(b, 16)
+
+    rawmult = multiplier / 100
+    if rawmult > 0:
+        if channel == "all":
+            rd = min(round(rd * rawmult), 255)
+            gd = min(round(gd * rawmult), 255)
+            bd = min(round(bd * rawmult), 255)
+        else:
+            if "r" in channel:
+                rd = min(round(rd * rawmult), 255)
+            elif "g" in channel:
+                gd = min(round(gd * rawmult), 255)
+            elif "b" in channel:
+                bd = min(round(bd * rawmult), 255)
+            else:
+                raise AttributeError(f"Channel must be a string of ['All', 'r', 'g', 'b'], not {channel}")
+    elif rawmult < 0:
+        if channel == "all":
+            rd = max(round(255 + rd * rawmult), 0)
+            gd = max(round(255 + gd * rawmult), 0)
+            bd = max(round(255 + bd * rawmult), 0)
+        else:
+            if "r" in channel:
+                rd = max(round(255 + rd * rawmult), 0)
+            elif "g" in channel:
+                gd = max(round(255 + gd * rawmult), 0)
+            elif "b" in channel:
+                bd = max(round(255 + bd * rawmult), 0)
+            else:
+                raise AttributeError(f"Channel must be a string of ['All', 'r', 'g', 'b'], not {channel}")
+    else:
+        raise AttributeError(f"Passed multiplier cannot be zero! ({multiplier})")
+
+    valuer = str(hex(rd)[2:])
+    valueg = str(hex(gd)[2:])
+    valueb = str(hex(bd)[2:])
+
+    if len(valuer) == 2:
+        pass
+    else:
+        valuer = "0" + str(valuer)
+
+    if len(valueg) == 2:
+        pass
+    else:
+        valueg = "0" + str(valueg)
+
+    if len(valueb) == 2:
+        pass
+    else:
+        valueb = "0" + str(valueb)
+
+    return "#" + valuer + valueg + valueb
+
+
 def mapstuff(page: ft.page):
     items = {"Earth": [1, -2],
              "moon": [-5, -5],
@@ -52,8 +115,6 @@ def mapstuff(page: ft.page):
 
     st = ft.Stack(points, width=mapdims[0], height=mapdims[1])
     page.add(st)
-
-
 
 
 class ServerQuery:
@@ -145,6 +206,12 @@ class SystemTab(TabInheritance):
         self.laste = None
 
         self.colour = self.tabcolours["System"]
+        self.textsize = 14 * self.scale / 100
+        self.buttonstyle = ft.ButtonStyle(color="#ffffff",
+                                          bgcolor=colourscale(self.colour, 80),
+                                          shape=ft.RoundedRectangleBorder(radius=5),
+                                          padding=5)
+
 
         # Check to see if te
         syspagename = "cachedsyspage.json"
@@ -213,19 +280,18 @@ class SystemTab(TabInheritance):
         displist = []
 
         # Variable setup
-        textsize = 14 * self.scale / 100
         contpadding = 5
-        nametextwidth = len(nicenames["hostname"]) * textsize / 1.8
+        nametextwidth = len(nicenames["hostname"]) * self.textsize / 1.8
         for key, value in reducedheir.items():
             if key in nicenames.keys():
                 name = nicenames[key]
-                nametext = ft.Text(name, size=textsize, width=nametextwidth)
+                nametext = ft.Text(name, size=self.textsize, width=nametextwidth)
                 maxlength = round(self.page.window.width - (
-                        nametextwidth + self.sidebarsize + contpadding * 4 + 20))
+                        nametextwidth + self.sidebarsize + contpadding * 4 + 30))
 
                 item = ft.Container(content=ft.Row([nametext,
                                                     ft.Container(content=ft.TextField(value,
-                                                                                      text_size=textsize,
+                                                                                      text_size=self.textsize,
                                                                                       content_padding=contpadding,
                                                                                       dense=True),
                                                                  width=maxlength)
@@ -233,7 +299,21 @@ class SystemTab(TabInheritance):
                                     padding=contpadding)
                 displist.append(item)
 
-        self.sidewindow = displist
+        content = ft.Column(controls=[ft.Container(content=ft.Row([ft.TextButton("Save",
+                                                                                 icon=ft.icons.SAVE_ROUNDED,
+                                                                                 style=self.buttonstyle,
+                                                                                 icon_color="#ffffff"),
+                                                                   ft.Text("revert"),
+                                                                   ft.Text("Close")],
+                                                                  height=20 * self.scale / 100),
+                                                   bgcolor=colourscale(self.colour, 80),
+                                                   padding=contpadding,
+                                                   border_radius=5),
+                                      ft.Column(controls=displist)]
+                            )
+
+
+        self.sidewindow = content
         self.sidewindowobj.setstruct(self.sidewindow)
 
         self.page.update()
@@ -420,7 +500,6 @@ class ObservedTab(TabInheritance):
                                             width=self.sidebarsize)
         self.sidewindow = ft.Container(content=ft.Text("Observed window..."), expand=True)
 
-
     def redrawlastevent(self):
         self.sidewindowobj.setstruct(self.sidewindow)
 
@@ -429,21 +508,20 @@ class SideWindowController:
     def __init__(self, page, scale=100):
         self.page = page
         self.struct = ft.Container(content=ft.Column(controls=[ft.Row([ft.Text("Save"),
-                                                                      ft.Text("revert"),
-                                                                      ft.Text("Close")],
-                                                     height=20 * scale/100),
-                                                     ft.Column(controls=[ft.Text("Temp class")])]),
+                                                                       ft.Text("revert"),
+                                                                       ft.Text("Close")],
+                                                                      height=20 * scale / 100),
+                                                               ft.Column(controls=[ft.Text("Temp class")])]),
                                    padding=5)
         # self.struct = ft.Column(controls=[ft.Text("Temp class")])
         self.page.update()
 
     def setstruct(self, newstruct):
         if isinstance(newstruct, list):
-            self.struct.controls = newstruct
+            self.struct.content.controls = newstruct
         else:
-            self.struct = newstruct
-        # self.struct.controls += newstruct
-        # self.struct.controls.pop(0)
+            self.struct.content = newstruct
+
         self.page.update()
 
 
@@ -572,9 +650,9 @@ def window(page: ft.page):
     global sq
     systemtabobj = SystemTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
     systemtabobj.sidewindow = [ft.Text("Placeholder text for system...")]
-    scheduleobj = ScheduleTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
+    scheduleobj = ScheduleTab(sq, tabcolours["Schedule"], page, sidewindowobj, sidebarsize)
     scheduleobj.sidewindow = [ft.Text("Placeholder text for schedule...")]
-    observedobj = ObservedTab(sq, tabcolours["System"], page, sidewindowobj, sidebarsize)
+    observedobj = ObservedTab(sq, tabcolours["Observed"], page, sidewindowobj, sidebarsize)
     observedobj.sidewindow = [ft.Text("Placeholder text for observed...")]
 
     # page setup
@@ -600,3 +678,6 @@ def start():
 sq = None
 tabcolours = {}
 start()
+
+
+## Add context menu and save functionality+
