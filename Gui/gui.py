@@ -270,17 +270,18 @@ class SystemTab(TabInheritance):
         ## Cannot be used to redraw as such, last e and last event are not set
         revnicenames = dict((v, k) for k, v in self.nicenames.items())
 
-
         content = self.sidewindowobj.struct
         displist = content.content.controls[1].controls
         listedname = displist[0].content.controls[1].content.value
-        dictobj = self.findinheir(self.localheir, listedname)
 
+        overwritedict = {}
         for item in displist:
             key, value = item.content.controls[0].value, item.content.controls[1].content.value
             actualkey = revnicenames[key]
-            print(key, value)
+            print(key, actualkey, value)
+            overwritedict[actualkey] = value
 
+        retcode = self.replacedictdetails(listedname, None, overwritedict)
 
     def displayiteminfomationinmain(self, e):
         """
@@ -399,9 +400,44 @@ class SystemTab(TabInheritance):
                                                                        insertidx)
         return insertidx
 
+    def replacedictdetails(self, name: str, treeobj: dict | None, replacementdict: dict):
+        """
+        Replaces the infomation of a item with the current name but does not affect controlled
+        :param name: Name of the heirarchy object to overwrite
+        :param treeobj: Heirarchy object to overwrite
+        :param replacementdict: Dict with the details to overwrite the old details
+        :return: 1 if successful, 0 if not
+        """
+        if treeobj is None:
+            # Easier to use
+            treeobj = self.localheir
+
+        if treeobj["name"] != name:
+            if treeobj["level"] != "Port":
+                returncode = 0
+                for idx in range(treeobj["controlled"]):
+                    retcode = self.replacedictdetails(name, treeobj["controlled"][idx], replacementdict)
+                    if retcode == 1:
+                        return 1
+            return 0
+        else:
+            # Overwrite using the changed keys in replacementdict
+            for key, value in replacementdict.items():
+                treeobj[key] = value
+
+            return 1
+
+
+
+
+
+
     def findinheir(self, obj: dict(), name: str):
         """
-        Where OBJ is a dict and name is a string
+        Finds the object with name == name in the dictionaary and returns a truncated dictionary
+        :param obj: a dictionary containing the heriarchy of objects from servera
+        :param name: string of the name of the object in the dictionary to find
+        :return: [obj]
         """
 
         if obj["name"] == name:
