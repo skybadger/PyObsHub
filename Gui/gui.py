@@ -183,6 +183,16 @@ class ServerQuery:
 
 
 class TabInheritance:
+    nicenames = {"name": "Name",
+                 "level": "Level",
+                 "lastupdated": "Last updated at",
+                 "associateddata": "Associated Data",
+                 "avaliable": "Avaliable",
+                 "stationtype": "Station type",
+                 "hostname": "Network host name",
+                 "interfacetype": "Interface type",
+                 "altlimits": "Altitude Limits"}
+
     def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth=10):
         self.sq = sqn
         self.bgcolour = bgcolour
@@ -256,6 +266,22 @@ class SystemTab(TabInheritance):
         else:
             raise NotImplementedError("No other events are listed! (Redraw last error)")
 
+    def savebuttonpressed(self, e):
+        ## Cannot be used to redraw as such, last e and last event are not set
+        revnicenames = dict((v, k) for k, v in self.nicenames.items())
+
+
+        content = self.sidewindowobj.struct
+        displist = content.content.controls[1].controls
+        listedname = displist[0].content.controls[1].content.value
+        dictobj = self.findinheir(self.localheir, listedname)
+
+        for item in displist:
+            key, value = item.content.controls[0].value, item.content.controls[1].content.value
+            actualkey = revnicenames[key]
+            print(key, value)
+
+
     def displayiteminfomationinmain(self, e):
         """
         When a tree button is clicked, display the infomation in a editable format
@@ -265,26 +291,16 @@ class SystemTab(TabInheritance):
         self.laste = e
         self.lastevent = "displayiteminfomationinmain"
 
-        nicenames = {"name": "Name",
-                     "level": "Level",
-                     "lastupdated": "Last updated at",
-                     "associateddata": "Associated Data",
-                     "avaliable": "Avaliable",
-                     "stationtype": "Station type",
-                     "hostname": "Network host name",
-                     "interfacetype": "Interface type",
-                     "altlimits": "Altitude Limits"}
-
         branchname = e.control.text
         reducedheir = self.findinheir(self.localheir, branchname)[0]
         displist = []
 
         # Variable setup
         contpadding = 5
-        nametextwidth = len(nicenames["hostname"]) * self.textsize / 1.8
+        nametextwidth = len(self.nicenames["hostname"]) * self.textsize / 1.8
         for key, value in reducedheir.items():
-            if key in nicenames.keys():
-                name = nicenames[key]
+            if key in self.nicenames.keys():
+                name = self.nicenames[key]
                 nametext = ft.Text(name, size=self.textsize, width=nametextwidth)
                 maxlength = round(self.page.window.width - (
                         nametextwidth + self.sidebarsize + contpadding * 4 + 30))
@@ -302,7 +318,8 @@ class SystemTab(TabInheritance):
         content = ft.Column(controls=[ft.Container(content=ft.Row([ft.TextButton("Save",
                                                                                  icon=ft.icons.SAVE_ROUNDED,
                                                                                  style=self.buttonstyle,
-                                                                                 icon_color="#ffffff"),
+                                                                                 icon_color="#ffffff",
+                                                                                 on_click=self.savebuttonpressed),
                                                                    ft.Text("revert"),
                                                                    ft.Text("Close")],
                                                                   height=20 * self.scale / 100),
@@ -382,7 +399,11 @@ class SystemTab(TabInheritance):
                                                                        insertidx)
         return insertidx
 
-    def findinheir(self, obj, name):
+    def findinheir(self, obj: dict(), name: str):
+        """
+        Where OBJ is a dict and name is a string
+        """
+
         if obj["name"] == name:
             return [obj]
         elif obj["name"] != name:
