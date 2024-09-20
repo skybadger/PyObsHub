@@ -104,6 +104,7 @@ class Hierarchy:
 
                     heirobj.updatedetails(newitem)
 
+
     def listcontrolled(self):
         """
         :return: List of controlled objects
@@ -577,9 +578,7 @@ class ReqHandlerRorController:
             jsonstruct = json.loads(reqmedia)
             print(jsonstruct)
             foundobject = self.serverheircontroller.findobjectbyname(jsonstruct["name"])[0]
-            print(self.serverheircontroller.listjson(self.serverheircontroller.level))
             foundobject.updatedetails(jsonstruct)
-            print(self.serverheircontroller.listjson(self.serverheircontroller.level))
             
         # If possible, keep rest body as a list type
         print(respbody)

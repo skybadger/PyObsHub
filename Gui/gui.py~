@@ -618,7 +618,7 @@ class SystemTab(TabInheritance):
         item.content.controls[0].controls[1].content.controls[0].disabled = True
         #base item               #base row                       #icon button
 
-        #item.content.controls[0].controls[1].on_click = self.addnewitemtotree
+        item.content.controls[0].controls[1].on_click = self.addnewitemtotree
         return item
 
     def addnewitemtotree(self, e):
