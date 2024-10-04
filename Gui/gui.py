@@ -10,6 +10,7 @@ import queue
 q = queue.Queue(maxsize=0)
 sq = None
 tabcolours = {}
+levels = ["Site", "Station", "Mount", "OTA", "Port"]
 
 
 def threadworker():
@@ -284,6 +285,9 @@ class SystemTab(TabInheritance):
         else:
             raise NotImplementedError("No other events are listed! (Redraw last error)")
 
+    ## All methods with e passed, are events
+    ## As such, the below methods are event methods
+
     def savebuttonpressed(self, e):
         """
         Method to save the altered data to the server when pressed.
@@ -444,6 +448,14 @@ class SystemTab(TabInheritance):
                         popped += 1
                         break
 
+            # Remove the "Add x" button from the hierarchy
+            for i, item in enumerate(self.treecontrainer.content.controls):
+                cont = item.content.controls[0].controls
+                if isinstance(cont[2], ft.TextField):
+                    if localheir["name"] == cont[3].value:
+                        self.treecontrainer.content.controls.pop(i)
+
+
         self.page.update()
 
     def findallcontrolledanddroppeditems(self, source, controlled, offset, insertidx):
@@ -480,7 +492,6 @@ class SystemTab(TabInheritance):
                                                                        offset + self.offsetgrowth,
                                                                        insertidx)
 
-        print("Add")
         item = self.addtreeitem(source, offset + self.offsetgrowth, insertidx)
         self.treecontrainer.content.controls.insert(insertidx, item)
         insertidx += 1
@@ -608,22 +619,38 @@ class SystemTab(TabInheritance):
         self.page.update()
 
     def addtreeitem(self, source, offset, insertidx):
-        name = source["name"]
-        passdict = {"name": "Add " + source["level"]}
+        sourcelevel = source["level"]
+        if sourcelevel == "Port":
+            return None
+
+        sinklevel = levels[levels.index(sourcelevel) + 1]
+
+        passdict = {"name": "Add " + sinklevel}
         item = self.displaytreeitem(passdict, offset=offset, clickable=True, dropped=False)
-        # content.controls[0].controls[1].content.controls[0].icon = ft.icons.CIRCLE_SHARP
+
         item.content.controls[0].controls[1].content.controls[0].name = ft.icons.CIRCLE_SHARP
+        print(item.content.controls[0].controls[2])
+        item.content.controls[0].controls[1].disabled = True
         item.content.controls[0].controls[1].on_click = None
 
-        item.content.controls[0].controls[1].content.controls[0].disabled = True
-        #base item               #base row                       #icon button
+        print(item.content.controls[0].controls[2])
+        item.content.controls[0].controls[2] = ft.TextField(passdict["name"],
+                                                            dense=True,
+                                                            border=ft.InputBorder.NONE,
+                                                            text_size=14*self.scale/100,
+                                                            color="#ffffff",
+                                                            on_submit=self.addnewitemtotree)
 
-        #item.content.controls[0].controls[1].on_click = self.addnewitemtotree
+        item.content.controls[0].controls.append(ft.Text(source["name"], disabled=True))
         return item
 
     def addnewitemtotree(self, e):
         print("Add new item to tree")
-        pass
+        print(e.control)
+        print(e.control.text)
+
+        self.page.update()
+
 
 class ScheduleTab(TabInheritance):
     def __init__(self, sqn, bgcolour, page, sidewindowobj, sidebarsize=220, scale=100, offsetgrowth=10):
